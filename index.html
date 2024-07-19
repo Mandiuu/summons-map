@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dive in, take a swim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet">
+    <link rel="stylesheet" href="reset.css">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Lato', sans-serif;
+            background-color: #79bcec;
+            font-size: 20px;
+            line-height: 1.4;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .mapboxgl-popup {
+            max-width: 400px;
+            font: 12px/20px 'Lato', Arial, Helvetica, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHloYm8yMmowMng1MmxvYWZleTJiam1tIn0.YG1P0l-N-2-qR8BV5nv4og';
+
+        const map = new mapboxgl.Map({
+            container: 'map', // container ID
+            center: [-74.0060, 40.7128], // starting position [lng, lat]
+            zoom: 12,
+            style: 'mapbox://styles/carlamandiola/clyqsm9ca00e701qndygdgz3c'
+        });
+
+        map.on('load', () => {
+            d3.csv('summons.csv').then(summonsData => {
+                // Function to clean and convert coordinates
+                const cleanCoordinate = coord => {
+                    // Remove all non-digit characters except the first decimal point
+                    let cleaned = coord.replace(/[^0-9.-]+/g, '');
+                    return parseFloat(cleaned);
+                };
+
+                const summonsGeoJson = {
+                    type: 'FeatureCollection',
+                    features: summonsData.map(d => {
+                        const longitude = cleanCoordinate(d.Longitude);
+                        const latitude = cleanCoordinate(d.Latitude);
+                        console.log(`Longitude: ${longitude}, Latitude: ${latitude}`);
+                        return {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [longitude, latitude]
+                            },
+                            properties: {
+                                offense: d.OFFENSE_DESCRIPTION,
+                                precinct: d['Police Precincts'],
+                                borough: d.BORO
+                            }
+                        };
+                    })
+                };
+
+                console.log('Summons GeoJSON:', summonsGeoJson);
+
+                map.addSource('summonses', {
+                    type: 'geojson',
+                    data: summonsGeoJson
+                });
+
+                map.addLayer({
+                    id: 'summonses',
+                    type: 'circle',
+                    source: 'summonses',
+                    paint: {
+                        'circle-radius': 5,
+                        'circle-color': '#FF0000',
+                        'circle-opacity': 0.6
+                    }
+                });
+
+                const summonsPopup = new mapboxgl.Popup({
+                    closeButton: false,
+                    closeOnClick: false
+                });
+
+                map.on('mouseenter', 'summonses', (e) => {
+                    map.getCanvas().style.cursor = 'pointer';
+
+                    const coordinates = e.features[0].geometry.coordinates.slice();
+                    const offense = e.features[0].properties.offense;
+                    const precinct = e.features[0].properties.precinct;
+                    const borough = e.features[0].properties.borough;
+
+                    summonsPopup.setLngLat(coordinates).setHTML(`
+                        <strong>Offense:</strong> ${offense}<br>
+                        <strong>Precinct:</strong> ${precinct}<br>
+                        <strong>Borough:</strong> ${borough}
+                    `).addTo(map);
+                });
+
+                map.on('mouseleave', 'summonses', () => {
+                    map.getCanvas().style.cursor = '';
+                    summonsPopup.remove();
+                });
+            }).catch(error => {
+                console.error('Error loading the summons CSV file:', error);
+            });
+        });
+    </script>
+
+</body>
+</html>
