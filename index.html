@@ -49,6 +49,22 @@
             style: 'mapbox://styles/carlamandiola/clyqsm9ca00e701qndygdgz3c'
         });
 
+        function reverseGeocode(lng, lat) {
+            return fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.features.length > 0) {
+                        return data.features[0].place_name;
+                    } else {
+                        return 'Address not found';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error with reverse geocoding:', error);
+                    return 'Address not found';
+                });
+        }
+
         map.on('load', () => {
             d3.csv('summons.csv').then(summonsData => {
                 // Function to clean and convert coordinates
@@ -73,7 +89,9 @@
                             properties: {
                                 offense: d.OFFENSE_DESCRIPTION,
                                 precinct: d['Police Precincts'],
-                                borough: d.BORO
+                                borough: d.BORO,
+                                longitude: longitude,
+                                latitude: latitude
                             }
                         };
                     })
@@ -109,12 +127,17 @@
                     const offense = e.features[0].properties.offense;
                     const precinct = e.features[0].properties.precinct;
                     const borough = e.features[0].properties.borough;
+                    const longitude = e.features[0].properties.longitude;
+                    const latitude = e.features[0].properties.latitude;
 
-                    summonsPopup.setLngLat(coordinates).setHTML(`
-                        <strong>Offense:</strong> ${offense}<br>
-                        <strong>Precinct:</strong> ${precinct}<br>
-                        <strong>Borough:</strong> ${borough}
-                    `).addTo(map);
+                    reverseGeocode(longitude, latitude).then(address => {
+                        summonsPopup.setLngLat(coordinates).setHTML(`
+                            <strong>Offense:</strong> ${offense}<br>
+                            <strong>Precinct:</strong> ${precinct}<br>
+                            <strong>Borough:</strong> ${borough}<br>
+                            <strong>Address:</strong> ${address}
+                        `).addTo(map);
+                    });
                 });
 
                 map.on('mouseleave', 'summonses', () => {
