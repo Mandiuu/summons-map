@@ -8,6 +8,7 @@
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet">
     <link rel="stylesheet" href="reset.css">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
+    <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0-beta.21/web.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <style>
         html, body {
@@ -72,13 +73,35 @@
             box-sizing: border-box;
             font-size: 16px;
         }
+
+        #suggestions {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            background: white;
+            color: black;
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        #suggestions li {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        #suggestions li:hover {
+            background: #eee;
+        }
     </style>
 </head>
 
 <body>
     <div id="sidebar">
-        <input type="text" id="searchBar" placeholder="Search offense descriptions...">
+        <div id="search-box-container"></div>
         <h2>Categories</h2>
+        <input type="text" id="searchBar" placeholder="Search offense descriptions...">
+        <ul id="suggestions"></ul>
         <div id="categoryList"></div>
     </div>
     <div id="map"></div>
@@ -104,6 +127,7 @@
         };
 
         const categories = Object.keys(colors);
+        let summonsData = [];
 
         function populateSidebar() {
             const categoryList = document.getElementById('categoryList');
@@ -130,10 +154,10 @@
             return parseFloat(cleaned);
         }
 
-        function mapSummonsData(summonsData) {
+        function mapSummonsData(data) {
             return {
                 type: 'FeatureCollection',
-                features: summonsData.map(d => {
+                features: data.map(d => {
                     const longitude = cleanCoordinate(d.Longitude);
                     const latitude = cleanCoordinate(d.Latitude);
                     return {
@@ -155,6 +179,10 @@
         }
 
         function addSummonsLayer(summonsGeoJson) {
+            if (map.getSource('summonses')) {
+                map.removeLayer('summonses');
+                map.removeSource('summonses');
+            }
             map.addSource('summonses', {
                 type: 'geojson',
                 data: summonsGeoJson
@@ -229,14 +257,62 @@
             map.setFilter('summonses', filter);
         }
 
+        function showSuggestions(query) {
+            const suggestions = document.getElementById('suggestions');
+            suggestions.innerHTML = ''; // Clear previous suggestions
+
+            if (!query) {
+                return;
+            }
+
+            const lowercaseQuery = query.toLowerCase();
+            const uniqueSuggestions = new Set(
+                summonsData
+                    .map(d => d.OFFENSE_DESCRIPTION)
+                    .filter(offense => offense.toLowerCase().includes(lowercaseQuery))
+            );
+            const matchingSuggestions = Array.from(uniqueSuggestions).slice(0, 5); // Limit to 5 suggestions
+
+            matchingSuggestions.forEach(suggestion => {
+                const li = document.createElement('li');
+                li.textContent = suggestion;
+                li.onclick = () => {
+                    document.getElementById('searchBar').value = suggestion;
+                    filterByOffense(suggestion);
+                    suggestions.innerHTML = '';
+                };
+                suggestions.appendChild(li);
+            });
+        }
+
         let searchTimeout;
         document.getElementById('searchBar').addEventListener('input', (e) => {
             const query = e.target.value;
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
+                showSuggestions(query);
                 filterByOffense(query);
             }, 300); // Delay to prevent excessive requests
         });
+
+        const script = document.getElementById('search-js');
+        script.onload = function () {
+            const mapboxAccessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHloYm8yMmowMng1MmxvYWZleTJiam1tIn0.YG1P0l-N-2-qR8BV5nv4og';
+
+            const searchBox = new mapboxsearch.MapboxSearchBox();
+
+            searchBox.accessToken = mapboxAccessToken;
+            searchBox.options = {
+                language: 'en',
+                bbox: [-74.2596399, 40.477399, -73.700292, 40.917577] // New York City bounding box
+            };
+
+            searchBox.mapboxgl = mapboxgl;
+            searchBox.marker = true;
+
+            searchBox.bindMap(map);
+            document.getElementById('search-box-container').appendChild(searchBox);
+        };
 
         async function getAddress(coordinates) {
             const [longitude, latitude] = coordinates;
@@ -247,13 +323,24 @@
         }
 
         async function getCoordinates(address) {
-            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`;
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}&bbox=-74.2596399,40.477399,-73.700292,40.917577`; // New York City bounding box
             const response = await fetch(url);
             const data = await response.json();
             if (data.features.length > 0) {
                 return data.features[0].center;
             }
             return null;
+        }
+
+        function searchAndZoom(query) {
+            getCoordinates(query).then(coordinates => {
+                if (coordinates) {
+                    map.flyTo({
+                        center: coordinates,
+                        zoom: 14
+                    });
+                }
+            });
         }
 
         map.on('load', () => {
@@ -263,8 +350,9 @@
             const csvPath = 'yes_2023.csv';
             console.log(`Loading CSV file from: ${csvPath}`);
 
-            d3.csv(csvPath).then(summonsData => {
-                const summonsGeoJson = mapSummonsData(summonsData);
+            d3.csv(csvPath).then(data => {
+                summonsData = data; // Store data for later use in filtering and suggestions
+                const summonsGeoJson = mapSummonsData(data);
                 console.log('Summons GeoJSON:', summonsGeoJson); // Debugging output
                 addSummonsLayer(summonsGeoJson);
             }).catch(error => {
