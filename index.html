@@ -312,10 +312,7 @@
 
                         // Center the map on the popup if coordinates are valid
                         if (coordinates[0] !== null && coordinates[1] !== null) {
-                            map.flyTo({
-                                center: coordinates,
-                                zoom: 14
-                            });
+                            map.panTo(coordinates);
                         }
                     });
                 });
