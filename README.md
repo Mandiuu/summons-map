@@ -1,1 +1,1 @@
-https://mandiuu.github.io/Summons-map-Mapbox
+https://mandiuu.github.io/summons-map
