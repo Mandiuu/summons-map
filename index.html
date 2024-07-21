@@ -75,7 +75,6 @@
             margin-bottom: 10px;
             box-sizing: border-box;
             font-size: 15px;
-            
         }
 
         #suggestions {
@@ -183,7 +182,7 @@
         <div>
             <div class="sidebar-header">NYC Summons</div>
             <div id="yearLabel">Year: <span id="yearValue">2023</span></div>
-            <input type="range" id="yearSlider" min="2020" max="2023" value="2023" step="1">
+            <input type="range" id="yearSlider" min="2018" max="2023" value="2023" step="1">
             <div id="search-box-container"></div>
             <div class="sidebar-header2">Categories</div>
             <input type="text" id="searchBar" placeholder="Search offense descriptions">
@@ -201,7 +200,7 @@
             container: 'map', // container ID
             center: [-74.0060, 40.7128], // starting position [lng, lat]
             zoom: 12,
-            style: 'mapbox://styles/carlamandiola/clyqsm9ca00e701qndygdgz3c'
+            style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph'
         });
 
         const colors = {
@@ -239,6 +238,9 @@
         }
 
         function cleanCoordinate(coord) {
+            if (coord === undefined || coord === null) {
+                return null;
+            }
             let cleaned = coord.replace(/[^0-9.-]+/g, '');
             return parseFloat(cleaned);
         }
@@ -249,6 +251,10 @@
                 features: data.map(d => {
                     const longitude = cleanCoordinate(d.Longitude);
                     const latitude = cleanCoordinate(d.Latitude);
+                    // Skip if either coordinate is null
+                    if (longitude === null || latitude === null) {
+                        return null;
+                    }
                     return {
                         type: 'Feature',
                         geometry: {
@@ -263,11 +269,12 @@
                             address: ''
                         }
                     };
-                })
+                }).filter(feature => feature !== null) // Filter out null features
             };
         }
 
         function addSummonsLayer(summonsGeoJson) {
+            console.log('Adding summons layer with data:', summonsGeoJson);
             if (map.getSource('summonses')) {
                 map.getSource('summonses').setData(summonsGeoJson);
             } else {
@@ -470,14 +477,25 @@
                 d3.csv('yes_2023.csv'),
                 d3.csv('yes_2022.csv'),
                 d3.csv('yes_2021.csv'),
-                d3.csv('yes_2020.csv')
+                d3.csv('yes_2020.csv'),
+                d3.csv('yes_2019.csv'),
+                d3.csv('yes_2018.csv')
                 // Add more years as needed
-            ]).then(([data2023, data2022, data2021, data2020]) => {
+            ]).then(([data2023, data2022, data2021, data2020, data2019, data2018]) => {
                 summonsData['2023'] = data2023;
                 summonsData['2022'] = data2022;
                 summonsData['2021'] = data2021;
                 summonsData['2020'] = data2020;
-                // Add more years as needed
+                summonsData['2019'] = data2019;
+                summonsData['2018'] = data2018;
+
+                console.log('Data loaded:');
+                console.log('2023:', data2023.length);
+                console.log('2022:', data2022.length);
+                console.log('2021:', data2021.length);
+                console.log('2020:', data2020.length);
+                console.log('2019:', data2019.length);
+                console.log('2018:', data2018.length);
 
                 // Initialize the map with the current year's data
                 const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
