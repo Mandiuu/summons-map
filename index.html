@@ -29,6 +29,9 @@
             overflow-y: auto;
             flex-shrink: 0;
             z-index: 1; /* Ensure the sidebar is on top */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .category-button {
@@ -102,23 +105,40 @@
         }
 
         #yearLabel {
-            text-align: center;
+            text-align: left;
             color: white;
             font-size: 16px;
             margin-bottom: 10px;
+        }
+
+        .sidebar-footer {
+            font-size: 12px;
+            color: white;
+            text-align: right;
+        }
+
+        .sidebar-header {
+            text-align: left;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 
 <body>
     <div id="sidebar">
-        <div id="yearLabel">Year: <span id="yearValue">2023</span></div>
-        <input type="range" id="yearSlider" min="2020" max="2023" value="2023" step="1">
-        <div id="search-box-container"></div>
-        <h2>Categories</h2>
-        <input type="text" id="searchBar" placeholder="Search offense descriptions...">
-        <ul id="suggestions"></ul>
-        <div id="categoryList"></div>
+        <div>
+            <div class="sidebar-header">NYC Summons</div>
+            <div id="yearLabel">Year: <span id="yearValue">2023</span></div>
+            <input type="range" id="yearSlider" min="2020" max="2023" value="2023" step="1">
+            <div id="search-box-container"></div>
+            <h2>Categories</h2>
+            <input type="text" id="searchBar" placeholder="Search offense descriptions...">
+            <ul id="suggestions"></ul>
+            <div id="categoryList"></div>
+        </div>
+        <div class="sidebar-footer">By Carla Mandiola</div>
     </div>
     <div id="map"></div>
 
