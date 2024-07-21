@@ -477,23 +477,21 @@
         map.on('load', () => {
             populateSidebar();
 
-            // Load data for different years
             Promise.all([
                 d3.csv('yes_2023.csv'),
                 d3.csv('yes_2022.csv'),
                 d3.csv('yes_2021.csv'),
                 d3.csv('yes_2020.csv')
-                // Add more years as needed
+
             ]).then(([data2023, data2022, data2021, data2020]) => {
                 summonsData['2023'] = data2023;
                 summonsData['2022'] = data2022;
                 summonsData['2021'] = data2021;
                 summonsData['2020'] = data2020;
-                // Add more years as needed
 
-                // Initialize the map with the current year's data
+
                 const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
-                console.log('Summons GeoJSON:', summonsGeoJson); // Debugging output
+                console.log('Summons GeoJSON:', summonsGeoJson); 
                 addSummonsLayer(summonsGeoJson);
             }).catch(error => {
                 console.error('Error loading the summons CSV files:', error);
