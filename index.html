@@ -65,20 +65,27 @@
             font: 12px/20px 'Lato', Arial, Helvetica, sans-serif;
         }
 
-        #searchBar {
+        #searchBar, #categorySearchBar {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
             box-sizing: border-box;
             font-size: 16px;
         }
+
+        #legend {
+            margin-top: 20px;
+        }
     </style>
 </head>
 
 <body>
     <div id="sidebar">
-        <input type="text" id="searchBar" placeholder="Search addresses...">
+        <input type="text" id="searchBar" placeholder="Search offense descriptions...">
         <h2>Categories</h2>
+        <input type="text" id="categorySearchBar" placeholder="Search categories...">
+        <div id="categoryList"></div>
+        <div id="legend"></div>
     </div>
     <div id="map"></div>
 
@@ -105,13 +112,21 @@
         const categories = Object.keys(colors);
 
         function populateSidebar() {
-            const sidebar = document.getElementById('sidebar');
+            const categoryList = document.getElementById('categoryList');
+            const legend = document.getElementById('legend');
+            
+            categoryList.innerHTML = ''; // Clear previous list
             categories.forEach(category => {
                 const button = document.createElement('button');
                 button.className = 'category-button';
                 button.innerHTML = `<span class="legend-color" style="background-color: ${colors[category]}"></span>${category}`;
                 button.onclick = () => filterSummonsLayer(category);
-                sidebar.appendChild(button);
+                categoryList.appendChild(button);
+
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `<span class="legend-color" style="background-color: ${colors[category]}"></span>${category}`;
+                legend.appendChild(legendItem);
             });
 
             // Add a button for "All"
@@ -119,7 +134,30 @@
             allButton.className = 'category-button';
             allButton.innerHTML = 'All';
             allButton.onclick = () => filterSummonsLayer('all');
-            sidebar.appendChild(allButton);
+            categoryList.appendChild(allButton);
+        }
+
+        function filterCategoryList(query) {
+            const lowercaseQuery = query.toLowerCase();
+            const filteredCategories = categories.filter(category => category.toLowerCase().includes(lowercaseQuery));
+            
+            const categoryList = document.getElementById('categoryList');
+            categoryList.innerHTML = ''; // Clear previous list
+            
+            filteredCategories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'category-button';
+                button.innerHTML = `<span class="legend-color" style="background-color: ${colors[category]}"></span>${category}`;
+                button.onclick = () => filterSummonsLayer(category);
+                categoryList.appendChild(button);
+            });
+
+            // Add a button for "All"
+            const allButton = document.createElement('button');
+            allButton.className = 'category-button';
+            allButton.innerHTML = 'All';
+            allButton.onclick = () => filterSummonsLayer('all');
+            categoryList.appendChild(allButton);
         }
 
         function cleanCoordinate(coord) {
@@ -209,34 +247,29 @@
             }
         }
 
-        function filterByAddress(query) {
+        function filterByOffense(query) {
             const lowercaseQuery = query.toLowerCase();
             map.setFilter('summonses', ['all',
                 ['match', ['get', 'category'], categories, true],
                 ['any',
-                    ['in', lowercaseQuery, ['downcase', ['get', 'address']]],
-                    ['==', ['get', 'address'], lowercaseQuery]
+                    ['in', lowercaseQuery, ['downcase', ['get', 'offense']]],
+                    ['==', ['downcase', ['get', 'offense']], lowercaseQuery]
                 ]
             ]);
         }
 
-        function searchAndZoom(query) {
-            getCoordinates(query).then(coordinates => {
-                if (coordinates) {
-                    map.flyTo({
-                        center: coordinates,
-                        zoom: 14
-                    });
-                }
-            });
-        }
-
+        let searchTimeout;
         document.getElementById('searchBar').addEventListener('input', (e) => {
             const query = e.target.value;
-            filterByAddress(query);
-            if (query.length > 3) {
-                searchAndZoom(query);
-            }
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterByOffense(query);
+            }, 300); // Delay to prevent excessive requests
+        });
+
+        document.getElementById('categorySearchBar').addEventListener('input', (e) => {
+            const query = e.target.value;
+            filterCategoryList(query);
         });
 
         async function getAddress(coordinates) {
@@ -262,6 +295,7 @@
 
             d3.csv('yes_2023.csv').then(summonsData => {
                 const summonsGeoJson = mapSummonsData(summonsData);
+                console.log('Summons GeoJSON:', summonsGeoJson); // Debugging output
                 addSummonsLayer(summonsGeoJson);
             }).catch(error => {
                 console.error('Error loading the summons CSV file:', error);
