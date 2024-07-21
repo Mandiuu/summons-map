@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NYC summonses</title>
+    <title>Dive in, take a swim</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet">
     <link rel="stylesheet" href="reset.css">
@@ -15,16 +15,48 @@
             margin: 0;
             padding: 0;
             font-family: 'Lato', sans-serif;
-            background-color: #79bcec;
             font-size: 20px;
             line-height: 1.4;
+            display: flex;
+        }
+
+        #sidebar {
+            width: 250px;
+            background: #333;
+            color: white;
+            padding: 10px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            z-index: 1; /* Ensure the sidebar is on top */
+        }
+
+        .category-button {
+            display: block;
+            padding: 10px;
+            margin-bottom: 5px;
+            background: #444;
+            color: white;
+            text-align: left;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .category-button:hover {
+            background: #555;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            display: inline-block;
+            vertical-align: middle;
         }
 
         #map {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 100%;
+            flex-grow: 1;
             height: 100%;
         }
 
@@ -32,11 +64,22 @@
             max-width: 400px;
             font: 12px/20px 'Lato', Arial, Helvetica, sans-serif;
         }
+
+        #searchBar {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
     </style>
 </head>
 
 <body>
-
+    <div id="sidebar">
+        <input type="text" id="searchBar" placeholder="Search addresses...">
+        <h2>Categories</h2>
+    </div>
     <div id="map"></div>
 
     <script>
@@ -49,106 +92,181 @@
             style: 'mapbox://styles/carlamandiola/clyqsm9ca00e701qndygdgz3c'
         });
 
-        function reverseGeocode(lng, lat) {
-            return fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.features.length > 0) {
-                        return data.features[0].place_name;
-                    } else {
-                        return 'Address not found';
-                    }
+        const colors = {
+            'DISORDERLY BEHAVIOR': '#FF0000',
+            'BIKE': '#00FF00',
+            'VEHICLE': '#0000FF',
+            'DISOBEY BUSINESS AND STREET VENDOR REGULATIONS': '#FFFF00',
+            'NOISE': '#800080',
+            'PROPERTY': '#00FFFF',
+            'ALCOHOL/DRUGS': '#FF69B4'
+        };
+
+        const categories = Object.keys(colors);
+
+        function populateSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'category-button';
+                button.innerHTML = `<span class="legend-color" style="background-color: ${colors[category]}"></span>${category}`;
+                button.onclick = () => filterSummonsLayer(category);
+                sidebar.appendChild(button);
+            });
+
+            // Add a button for "All"
+            const allButton = document.createElement('button');
+            allButton.className = 'category-button';
+            allButton.innerHTML = 'All';
+            allButton.onclick = () => filterSummonsLayer('all');
+            sidebar.appendChild(allButton);
+        }
+
+        function cleanCoordinate(coord) {
+            let cleaned = coord.replace(/[^0-9.-]+/g, '');
+            return parseFloat(cleaned);
+        }
+
+        function mapSummonsData(summonsData) {
+            return {
+                type: 'FeatureCollection',
+                features: summonsData.map(d => {
+                    const longitude = cleanCoordinate(d.Longitude);
+                    const latitude = cleanCoordinate(d.Latitude);
+                    return {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [longitude, latitude]
+                        },
+                        properties: {
+                            offense: d.OFFENSE_DESCRIPTION,
+                            precinct: d['PRECINCT_OF_OCCUR'],
+                            borough: d.BORO,
+                            category: d.CATEGORY,
+                            address: ''
+                        }
+                    };
                 })
-                .catch(error => {
-                    console.error('Error with reverse geocoding:', error);
-                    return 'Address not found';
+            };
+        }
+
+        function addSummonsLayer(summonsGeoJson) {
+            map.addSource('summonses', {
+                type: 'geojson',
+                data: summonsGeoJson
+            });
+
+            map.addLayer({
+                id: 'summonses',
+                type: 'circle',
+                source: 'summonses',
+                paint: {
+                    'circle-radius': 5,
+                    'circle-color': [
+                        'match',
+                        ['get', 'category'],
+                        ...categories.reduce((acc, category) => [...acc, category, colors[category]], []),
+                        '#FF0000' // default color
+                    ],
+                    'circle-opacity': 0.6
+                }
+            });
+
+            const summonsPopup = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
+            map.on('mouseenter', 'summonses', (e) => {
+                map.getCanvas().style.cursor = 'pointer';
+
+                const coordinates = e.features[0].geometry.coordinates.slice();
+                const { offense, precinct, borough, category } = e.features[0].properties;
+
+                getAddress(coordinates).then(address => {
+                    e.features[0].properties.address = address;
+                    summonsPopup.setLngLat(coordinates).setHTML(`
+                        <strong>Offense:</strong> ${offense}<br>
+                        <strong>Precinct:</strong> ${precinct}<br>
+                        <strong>Borough:</strong> ${borough}<br>
+                        <strong>Address:</strong> ${address}
+                    `).addTo(map);
                 });
+            });
+
+            map.on('mouseleave', 'summonses', () => {
+                map.getCanvas().style.cursor = '';
+                summonsPopup.remove();
+            });
+        }
+
+        function filterSummonsLayer(category) {
+            if (category === 'all') {
+                map.setFilter('summonses', null);
+            } else {
+                map.setFilter('summonses', ['==', ['get', 'category'], category]);
+            }
+        }
+
+        function filterByAddress(query) {
+            const lowercaseQuery = query.toLowerCase();
+            map.setFilter('summonses', ['all',
+                ['match', ['get', 'category'], categories, true],
+                ['any',
+                    ['in', lowercaseQuery, ['downcase', ['get', 'address']]],
+                    ['==', ['get', 'address'], lowercaseQuery]
+                ]
+            ]);
+        }
+
+        function searchAndZoom(query) {
+            getCoordinates(query).then(coordinates => {
+                if (coordinates) {
+                    map.flyTo({
+                        center: coordinates,
+                        zoom: 14
+                    });
+                }
+            });
+        }
+
+        document.getElementById('searchBar').addEventListener('input', (e) => {
+            const query = e.target.value;
+            filterByAddress(query);
+            if (query.length > 3) {
+                searchAndZoom(query);
+            }
+        });
+
+        async function getAddress(coordinates) {
+            const [longitude, latitude] = coordinates;
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.features[0]?.place_name || 'Address not found';
+        }
+
+        async function getCoordinates(address) {
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.features.length > 0) {
+                return data.features[0].center;
+            }
+            return null;
         }
 
         map.on('load', () => {
-            d3.csv('summons.csv').then(summonsData => {
-                // Function to clean and convert coordinates
-                const cleanCoordinate = coord => {
-                    // Remove all non-digit characters except the first decimal point
-                    let cleaned = coord.replace(/[^0-9.-]+/g, '');
-                    return parseFloat(cleaned);
-                };
+            populateSidebar();
 
-                const summonsGeoJson = {
-                    type: 'FeatureCollection',
-                    features: summonsData.map(d => {
-                        const longitude = cleanCoordinate(d.Longitude);
-                        const latitude = cleanCoordinate(d.Latitude);
-                        console.log(`Longitude: ${longitude}, Latitude: ${latitude}`);
-                        return {
-                            type: 'Feature',
-                            geometry: {
-                                type: 'Point',
-                                coordinates: [longitude, latitude]
-                            },
-                            properties: {
-                                offense: d.OFFENSE_DESCRIPTION,
-                                precinct: d['Police Precincts'],
-                                borough: d.BORO,
-                                longitude: longitude,
-                                latitude: latitude
-                            }
-                        };
-                    })
-                };
-
-                console.log('Summons GeoJSON:', summonsGeoJson);
-
-                map.addSource('summonses', {
-                    type: 'geojson',
-                    data: summonsGeoJson
-                });
-
-                map.addLayer({
-                    id: 'summonses',
-                    type: 'circle',
-                    source: 'summonses',
-                    paint: {
-                        'circle-radius': 5,
-                        'circle-color': '#FF0000',
-                        'circle-opacity': 0.6
-                    }
-                });
-
-                const summonsPopup = new mapboxgl.Popup({
-                    closeButton: false,
-                    closeOnClick: false
-                });
-
-                map.on('mouseenter', 'summonses', (e) => {
-                    map.getCanvas().style.cursor = 'pointer';
-
-                    const coordinates = e.features[0].geometry.coordinates.slice();
-                    const offense = e.features[0].properties.offense;
-                    const precinct = e.features[0].properties.precinct;
-                    const borough = e.features[0].properties.borough;
-                    const longitude = e.features[0].properties.longitude;
-                    const latitude = e.features[0].properties.latitude;
-
-                    reverseGeocode(longitude, latitude).then(address => {
-                        summonsPopup.setLngLat(coordinates).setHTML(`
-                            <strong>Offense:</strong> ${offense}<br>
-                            <strong>Precinct:</strong> ${precinct}<br>
-                            <strong>Borough:</strong> ${borough}<br>
-                            <strong>Address:</strong> ${address}
-                        `).addTo(map);
-                    });
-                });
-
-                map.on('mouseleave', 'summonses', () => {
-                    map.getCanvas().style.cursor = '';
-                    summonsPopup.remove();
-                });
+            d3.csv('yes_2023.csv').then(summonsData => {
+                const summonsGeoJson = mapSummonsData(summonsData);
+                addSummonsLayer(summonsGeoJson);
             }).catch(error => {
                 console.error('Error loading the summons CSV file:', error);
             });
         });
     </script>
-
 </body>
 </html>
