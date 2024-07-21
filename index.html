@@ -150,6 +150,48 @@
         .mapboxgl-ctrl-geocoder--input::placeholder {
             padding-left: 25px; /* Adjust to ensure the text doesn't overlap with the icon */
         }
+
+        /* Media query for mobile devices */
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 200px; /* Reduce sidebar width on mobile */
+            }
+
+            #yearLabel {
+                font-size: 14px; /* Adjust font size for mobile */
+            }
+
+            #searchBar {
+                font-size: 14px; /* Adjust font size for mobile */
+            }
+
+            .category-button {
+                padding: 8px; /* Adjust padding for mobile */
+                font-size: 14px; /* Adjust font size for mobile */
+            }
+
+            .sidebar-header, .sidebar-header2 {
+                font-size: 18px; /* Adjust font size for mobile */
+            }
+
+            .sidebar-footer {
+                font-size: 10px; /* Adjust font size for mobile */
+            }
+        }
+
+        @media (max-width: 480px) {
+            #sidebar {
+                width: 150px; /* Further reduce sidebar width on smaller screens */
+            }
+
+            #yearLabel, #searchBar, .category-button, .sidebar-header, .sidebar-header2, .sidebar-footer {
+                font-size: 12px; /* Further adjust font size for smaller screens */
+            }
+
+            .category-button {
+                padding: 6px; /* Further adjust padding for smaller screens */
+            }
+        }
     </style>
 </head>
 
@@ -399,7 +441,7 @@
             searchBoxInput.style.fontFamily = 'Lato, sans-serif';
             searchBoxInput.style.paddingLeft = '35px'; 
             searchBoxInput.style.paddingTop = '20px'; 
-            searchBoxInput.placeholder = 'Search address';
+            searchBoxInput.placeholder = 'Enter address...';
 
         };
 
