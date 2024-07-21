@@ -116,7 +116,6 @@
             font-size: 12px;
             color: white;
             text-align: right;
-            margin-top: 10px;
         }
 
         .sidebar-header {
@@ -126,12 +125,30 @@
             margin-bottom: 10px;
             margin-top: 0px;
         }
+
         .sidebar-header2 {
             text-align: left;
             color: white;
             font-size: 20px;
             margin-bottom: 10px;
             margin-top: 30px;
+        }
+
+        .mapboxgl-ctrl-geocoder--input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            font-family: 'Lato', sans-serif;
+            box-sizing: border-box;
+        }
+
+        .mapboxgl-ctrl-geocoder--icon-search {
+            left: 10px;
+            margin-left: 10px;
+        }
+
+        .mapboxgl-ctrl-geocoder--input::placeholder {
+            padding-left: 25px; /* Adjust to ensure the text doesn't overlap with the icon */
         }
     </style>
 </head>
@@ -369,7 +386,21 @@
             searchBox.marker = true;
 
             searchBox.bindMap(map);
-            document.getElementById('search-box-container').appendChild(searchBox);
+            const searchBoxContainer = document.getElementById('search-box-container');
+            searchBoxContainer.appendChild(searchBox);
+            
+            // Apply the same styles to the search input inside the searchBoxContainer
+            const searchBoxInput = searchBoxContainer.querySelector('input[type="text"]');
+            searchBoxInput.style.width = '100%';
+            searchBoxInput.style.padding = '10px';
+            searchBoxInput.style.marginBottom = '10px';
+            searchBoxInput.style.boxSizing = 'border-box';
+            searchBoxInput.style.fontSize = '16px';
+            searchBoxInput.style.fontFamily = 'Lato, sans-serif';
+            searchBoxInput.style.paddingLeft = '35px'; 
+            searchBoxInput.style.paddingTop = '20px'; 
+            searchBoxInput.placeholder = 'Search address';
+
         };
 
         async function getAddress(coordinates) {
