@@ -28,7 +28,7 @@
             padding: 10px;
             overflow-y: auto;
             flex-shrink: 0;
-            z-index: 1;
+            z-index: 1; /* Ensure the sidebar is on top */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -75,6 +75,7 @@
             margin-bottom: 10px;
             box-sizing: border-box;
             font-size: 15px;
+            
         }
 
         #suggestions {
@@ -149,7 +150,7 @@
         }
 
         .mapboxgl-ctrl-geocoder--input::placeholder {
-            padding-left: 25px;
+            padding-left: 25px; /* Adjust to ensure the text doesn't overlap with the icon */
         }
 
         @media (max-width: 768px) {
@@ -192,340 +193,317 @@
         <div class="sidebar-footer">By Carla Mandiola</div>
     </div>
     <div id="map"></div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHloYm8yMmowMng1MmxvYWZleTJiam1tIn0.YG1P0l-N-2-qR8BV5nv4og';
+        mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHloYm8yMmowMng1MmxvYWZleTJiam1tIn0.YG1P0l-N-2-qR8BV5nv4og';
 
-            const map = new mapboxgl.Map({
-                container: 'map', // container ID
-                center: [-74.0060, 40.7128], // starting position [lng, lat]
-                zoom: 12,
-                style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph'
+        const map = new mapboxgl.Map({
+            container: 'map', // container ID
+            center: [-74.0060, 40.7128], // starting position [lng, lat]
+            zoom: 12,
+            style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph'
+        });
+
+        const colors = {
+            'DISORDERLY BEHAVIOR': '#F5D800',
+            'BIKE': '#7A28CB',
+            'VEHICLE': '#5BC0EB',
+            'DISOBEY BUSINESS AND STREET VENDOR REGULATIONS': '#0C8346',
+            'NOISE': '#FF579F',
+            'PROPERTY': '#F5711F',
+            'ALCOHOL/DRUGS': '#FD151B'
+        };
+
+        const categories = Object.keys(colors);
+        let summonsData = {};
+        let currentYear = '2023';
+
+        function populateSidebar() {
+            const categoryList = document.getElementById('categoryList');
+            
+            categoryList.innerHTML = ''; // Clear previous list
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'category-button';
+                button.innerHTML = `<span class="legend-color" style="background-color: ${colors[category]}"></span>${category}`;
+                button.onclick = () => filterSummonsLayer(category);
+                categoryList.appendChild(button);
             });
 
-            const colors = {
-                'DISORDERLY BEHAVIOR': '#F5D800',
-                'BIKE': '#7A28CB',
-                'VEHICLE': '#5BC0EB',
-                'DISOBEY BUSINESS AND STREET VENDOR REGULATIONS': '#0C8346',
-                'NOISE': '#FF579F',
-                'PROPERTY': '#F5711F',
-                'ALCOHOL/DRUGS': '#FD151B'
-            };
+            // Add a button for "All"
+            const allButton = document.createElement('button');
+            allButton.className = 'category-button';
+            allButton.innerHTML = 'All';
+            allButton.onclick = () => filterSummonsLayer('all');
+            categoryList.appendChild(allButton);
+        }
 
-            const categories = Object.keys(colors);
-            let summonsData = {};
-            let currentYear = '2023';
-
-            function populateSidebar() {
-                const categoryList = document.getElementById('categoryList');
-                
-                categoryList.innerHTML = ''; // Clear previous list
-                categories.forEach(category => {
-                    const button = document.createElement('button');
-                    button.className = 'category-button';
-                    button.innerHTML = `<span class="legend-color" style="background-color: ${colors[category]}"></span>${category}`;
-                    button.onclick = () => filterSummonsLayer(category);
-                    categoryList.appendChild(button);
-                });
-
-                // Add a button for "All"
-                const allButton = document.createElement('button');
-                allButton.className = 'category-button';
-                allButton.innerHTML = 'All';
-                allButton.onclick = () => filterSummonsLayer('all');
-                categoryList.appendChild(allButton);
-            }
-
-            function cleanCoordinate(coord) {
-                if (coord === undefined || coord === null) {
-                    return null;
-                }
-                let cleaned = coord.replace(/[^0-9.-]+/g, '');
-                return parseFloat(cleaned);
-            }
-
-            function mapSummonsData(data) {
-                if (!data || data.length === 0) {
-                    console.error('Data is undefined or empty:', data);
-                    return { type: 'FeatureCollection', features: [] };
-                }
-
-                return {
-                    type: 'FeatureCollection',
-                    features: data.map(d => {
-                        const longitude = cleanCoordinate(d.Longitude);
-                        const latitude = cleanCoordinate(d.Latitude);
-                        // Skip if either coordinate is null
-                        if (longitude === null || latitude === null) {
-                            return null;
-                        }
-                        return {
-                            type: 'Feature',
-                            geometry: {
-                                type: 'Point',
-                                coordinates: [longitude, latitude]
-                            },
-                            properties: {
-                                offense: d.OFFENSE_DESCRIPTION,
-                                precinct: d['PRECINCT_OF_OCCUR'],
-                                borough: d.BORO,
-                                category: d.CATEGORY,
-                                address: ''
-                            }
-                        };
-                    }).filter(feature => feature !== null) // Filter out null features
-                };
-            }
-
-            function addSummonsLayer(summonsGeoJson) {
-                console.log('Adding summons layer with data:', summonsGeoJson);
-                if (map.getSource('summonses')) {
-                    map.getSource('summonses').setData(summonsGeoJson);
-                } else {
-                    map.addSource('summonses', {
-                        type: 'geojson',
-                        data: summonsGeoJson
-                    });
-
-                    map.addLayer({
-                        id: 'summonses',
-                        type: 'circle',
-                        source: 'summonses',
-                        paint: {
-                            'circle-radius': 5,
-                            'circle-color': [
-                                'match',
-                                ['get', 'category'],
-                                ...categories.reduce((acc, category) => [...acc, category, colors[category]], []),
-                                '#FF0000' // default color
-                            ],
-                            'circle-opacity': 0.6
-                        }
-                    });
-
-                    const summonsPopup = new mapboxgl.Popup({
-                        closeButton: false,
-                        closeOnClick: false
-                    });
-
-                    map.on('mouseenter', 'summonses', (e) => {
-                        map.getCanvas().style.cursor = 'pointer';
-
-                        const coordinates = e.features[0].geometry.coordinates.slice();
-                        const { offense, precinct, borough, category } = e.features[0].properties;
-
-                        getAddress(coordinates).then(address => {
-                            e.features[0].properties.address = address;
-                            summonsPopup.setLngLat(coordinates)
-                                .setHTML(`
-                                    <strong>Offense:</strong> ${offense}<br>
-                                    <strong>Precinct:</strong> ${precinct}<br>
-                                    <strong>Borough:</strong> ${borough}<br>
-                                    <strong>Address:</strong> ${address}
-                                `).addTo(map);
-
-                            // Center the map on the popup if coordinates are valid
-                            if (coordinates[0] !== null && coordinates[1] !== null) {
-                                map.flyTo({ center: coordinates });
-                            }
-                        });
-                    });
-
-                    map.on('mouseleave', 'summonses', () => {
-                        map.getCanvas().style.cursor = '';
-                        summonsPopup.remove();
-                    });
-                }
-            }
-
-            function filterSummonsLayer(category) {
-                if (category === 'all') {
-                    map.setFilter('summonses', null);
-                } else {
-                    map.setFilter('summonses', ['==', ['get', 'category'], category]);
-                }
-            }
-
-            function filterByOffense(query) {
-                const lowercaseQuery = query.toLowerCase();
-                if (!query) {
-                    filterSummonsLayer('all');
-                    return;
-                }
-                const filter = [
-                    'all',
-                    ['any',
-                        ['in', lowercaseQuery, ['downcase', ['get', 'offense']]],
-                        ['==', ['downcase', ['get', 'offense']], lowercaseQuery]
-                    ]
-                ];
-                console.log('Filter:', filter); // Debugging output
-                map.setFilter('summonses', filter);
-            }
-
-            function showSuggestions(query) {
-                const suggestions = document.getElementById('suggestions');
-                suggestions.innerHTML = ''; // Clear previous suggestions
-
-                if (!query) {
-                    return;
-                }
-
-                const lowercaseQuery = query.toLowerCase();
-                const uniqueSuggestions = new Set(
-                    summonsData[currentYear]
-                        .map(d => d.OFFENSE_DESCRIPTION)
-                        .filter(offense => offense.toLowerCase().includes(lowercaseQuery))
-                );
-                const matchingSuggestions = Array.from(uniqueSuggestions).slice(0, 5); // Limit to 5 suggestions
-
-                matchingSuggestions.forEach(suggestion => {
-                    const li = document.createElement('li');
-                    li.textContent = suggestion;
-                    li.onclick = () => {
-                        document.getElementById('searchBar').value = suggestion;
-                        filterByOffense(suggestion);
-                        suggestions.innerHTML = '';
-                    };
-                    suggestions.appendChild(li);
-                });
-            }
-
-            let searchTimeout;
-            document.getElementById('searchBar').addEventListener('input', (e) => {
-                const query = e.target.value;
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    showSuggestions(query);
-                    filterByOffense(query);
-                }, 300); // Delay to prevent excessive requests
-            });
-
-            document.getElementById('yearSlider').addEventListener('input', (e) => {
-                currentYear = e.target.value;
-                document.getElementById('yearValue').textContent = currentYear;
-                updateMap();
-            });
-
-            function updateMap() {
-                const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
-                addSummonsLayer(summonsGeoJson);
-            }
-
-            const script = document.getElementById('search-js');
-            script.onload = function () {
-                const mapboxAccessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHloYm8yMmowMng1MmxvYWZleTJiam1tIn0.YG1P0l-N-2-qR8BV5nv4og';
-
-                const searchBox = new mapboxsearch.MapboxSearchBox();
-
-                searchBox.accessToken = mapboxAccessToken;
-                searchBox.options = {
-                    language: 'en',
-                    bbox: [-74.2596399, 40.477399, -73.700292, 40.917577] // New York City bounding box
-                };
-
-                searchBox.mapboxgl = mapboxgl;
-                searchBox.marker = true;
-
-                searchBox.bindMap(map);
-                const searchBoxContainer = document.getElementById('search-box-container');
-                searchBoxContainer.appendChild(searchBox);
-                
-                // Apply the same styles to the search input inside the searchBoxContainer
-                const searchBoxInput = searchBoxContainer.querySelector('input[type="text"]');
-                searchBoxInput.style.width = '100%';
-                searchBoxInput.style.padding = '10px';
-                searchBoxInput.style.marginBottom = '10px';
-                searchBoxInput.style.boxSizing = 'border-box';
-                searchBoxInput.style.fontSize = '16px';
-                searchBoxInput.style.fontFamily = 'Lato, sans-serif';
-                searchBoxInput.style.paddingLeft = '35px';
-                searchBoxInput.placeholder = 'Search address';
-            };
-
-            async function getAddress(coordinates) {
-                const [longitude, latitude] = coordinates;
-                const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                return data.features[0]?.place_name || 'Address not found';
-            }
-
-            async function getCoordinates(address) {
-                const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}&bbox=-74.2596399,40.477399,-73.700292,40.917577`; // New York City bounding box
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data.features.length > 0) {
-                    return data.features[0].center;
-                }
+        function cleanCoordinate(coord) {
+            if (coord === undefined || coord === null) {
                 return null;
             }
+            let cleaned = coord.replace(/[^0-9.-]+/g, '');
+            return parseFloat(cleaned);
+        }
 
-            function searchAndZoom(query) {
-                getCoordinates(query).then(coordinates => {
-                    if (coordinates) {
-                        map.flyTo({
-                            center: coordinates,
-                            zoom: 14
-                        });
+        function mapSummonsData(data) {
+            return {
+                type: 'FeatureCollection',
+                features: data.map(d => {
+                    const longitude = cleanCoordinate(d.Longitude);
+                    const latitude = cleanCoordinate(d.Latitude);
+                    // Skip if either coordinate is null
+                    if (longitude === null || latitude === null) {
+                        return null;
+                    }
+                    return {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [longitude, latitude]
+                        },
+                        properties: {
+                            offense: d.OFFENSE_DESCRIPTION,
+                            precinct: d['PRECINCT_OF_OCCUR'],
+                            borough: d.BORO,
+                            category: d.CATEGORY,
+                            address: ''
+                        }
+                    };
+                }).filter(feature => feature !== null) // Filter out null features
+            };
+        }
+
+        function addSummonsLayer(summonsGeoJson) {
+            console.log('Adding summons layer with data:', summonsGeoJson);
+            if (map.getSource('summonses')) {
+                map.getSource('summonses').setData(summonsGeoJson);
+            } else {
+                map.addSource('summonses', {
+                    type: 'geojson',
+                    data: summonsGeoJson
+                });
+
+                map.addLayer({
+                    id: 'summonses',
+                    type: 'circle',
+                    source: 'summonses',
+                    paint: {
+                        'circle-radius': 5,
+                        'circle-color': [
+                            'match',
+                            ['get', 'category'],
+                            ...categories.reduce((acc, category) => [...acc, category, colors[category]], []),
+                            '#FF0000' // default color
+                        ],
+                        'circle-opacity': 0.6
                     }
                 });
+
+                const summonsPopup = new mapboxgl.Popup({
+                    closeButton: false,
+                    closeOnClick: false
+                });
+
+                map.on('mouseenter', 'summonses', (e) => {
+                    map.getCanvas().style.cursor = 'pointer';
+
+                    const coordinates = e.features[0].geometry.coordinates.slice();
+                    const { offense, precinct, borough, category } = e.features[0].properties;
+
+                    getAddress(coordinates).then(address => {
+                        e.features[0].properties.address = address;
+                        summonsPopup.setLngLat(coordinates).setHTML(`
+                            <strong>Offense:</strong> ${offense}<br>
+                            <strong>Precinct:</strong> ${precinct}<br>
+                            <strong>Borough:</strong> ${borough}<br>
+                            <strong>Address:</strong> ${address}
+                        `).addTo(map);
+
+                        // Center the map on the popup if coordinates are valid
+                        if (coordinates[0] !== null && coordinates[1] !== null) {
+                         
+                        }
+                    });
+                });
+
+                map.on('mouseleave', 'summonses', () => {
+                    map.getCanvas().style.cursor = '';
+                    summonsPopup.remove();
+                });
+            }
+        }
+
+        function filterSummonsLayer(category) {
+            if (category === 'all') {
+                map.setFilter('summonses', null);
+            } else {
+                map.setFilter('summonses', ['==', ['get', 'category'], category]);
+            }
+        }
+
+        function filterByOffense(query) {
+            const lowercaseQuery = query.toLowerCase();
+            if (!query) {
+                filterSummonsLayer('all');
+                return;
+            }
+            const filter = [
+                'all',
+                ['any',
+                    ['in', lowercaseQuery, ['downcase', ['get', 'offense']]],
+                    ['==', ['downcase', ['get', 'offense']], lowercaseQuery]
+                ]
+            ];
+            console.log('Filter:', filter); // Debugging output
+            map.setFilter('summonses', filter);
+        }
+
+        function showSuggestions(query) {
+            const suggestions = document.getElementById('suggestions');
+            suggestions.innerHTML = ''; // Clear previous suggestions
+
+            if (!query) {
+                return;
             }
 
-            map.on('load', () => {
-                populateSidebar();
+            const lowercaseQuery = query.toLowerCase();
+            const uniqueSuggestions = new Set(
+                summonsData[currentYear]
+                    .map(d => d.OFFENSE_DESCRIPTION)
+                    .filter(offense => offense.toLowerCase().includes(lowercaseQuery))
+            );
+            const matchingSuggestions = Array.from(uniqueSuggestions).slice(0, 5); // Limit to 5 suggestions
 
-                // Load data for different years
-                console.log('Attempting to load CSV files from the same directory as index.html');
-                Promise.all([
-                    d3.csv('yes_2023_corr.csv').then(data => {
-                        console.log('2023 data:', data);
-                        return data;
-                    }).catch(error => { console.error('Failed to load yes_2023_corr.csv:', error); return []; }),
-                    d3.csv('yes_2022_corr.csv').then(data => {
-                        console.log('2022 data:', data);
-                        return data;
-                    }).catch(error => { console.error('Failed to load yes_2022_corr.csv:', error); return []; }),
-                    d3.csv('yes_2021_corr.csv').then(data => {
-                        console.log('2021 data:', data);
-                        return data;
-                    }).catch(error => { console.error('Failed to load yes_2021_corr.csv:', error); return []; }),
-                    d3.csv('yes_2020_corr.csv').then(data => {
-                        console.log('2020 data:', data);
-                        return data;
-                    }).catch(error => { console.error('Failed to load yes_2020_corr.csv:', error); return []; }),
-                    d3.csv('yes_2019_corr.csv').then(data => {
-                        console.log('2019 data:', data);
-                        return data;
-                    }).catch(error => { console.error('Failed to load yes_2019_corr.csv:', error); return []; }),
-                    d3.csv('yes_2018_corr.csv').then(data => {
-                        console.log('2018 data:', data);
-                        return data;
-                    }).catch(error => { console.error('Failed to load yes_2018_corr.csv:', error); return []; })
-                ]).then(([data2023, data2022, data2021, data2020, data2019, data2018]) => {
-                    summonsData['2023'] = data2023;
-                    summonsData['2022'] = data2022;
-                    summonsData['2021'] = data2021;
-                    summonsData['2020'] = data2020;
-                    summonsData['2019'] = data2019;
-                    summonsData['2018'] = data2018;
+            matchingSuggestions.forEach(suggestion => {
+                const li = document.createElement('li');
+                li.textContent = suggestion;
+                li.onclick = () => {
+                    document.getElementById('searchBar').value = suggestion;
+                    filterByOffense(suggestion);
+                    suggestions.innerHTML = '';
+                };
+                suggestions.appendChild(li);
+            });
+        }
 
-                    console.log('Data loaded:');
-                    console.log('2023:', data2023.length);
-                    console.log('2022:', data2022.length);
-                    console.log('2021:', data2021.length);
-                    console.log('2020:', data2020.length);
-                    console.log('2019:', data2019.length);
-                    console.log('2018:', data2018.length);
+        let searchTimeout;
+        document.getElementById('searchBar').addEventListener('input', (e) => {
+            const query = e.target.value;
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                showSuggestions(query);
+                filterByOffense(query);
+            }, 300); // Delay to prevent excessive requests
+        });
 
-                    // Initialize the map with the current year's data
-                    const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
-                    console.log('Summons GeoJSON:', summonsGeoJson); // Debugging output
-                    addSummonsLayer(summonsGeoJson);
-                }).catch(error => {
-                    console.error('Error loading the summons CSV files:', error);
-                });
+        document.getElementById('yearSlider').addEventListener('input', (e) => {
+            currentYear = e.target.value;
+            document.getElementById('yearValue').textContent = currentYear;
+            updateMap();
+        });
+
+        function updateMap() {
+            const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
+            addSummonsLayer(summonsGeoJson);
+        }
+
+        const script = document.getElementById('search-js');
+        script.onload = function () {
+            const mapboxAccessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHloYm8yMmowMng1MmxvYWZleTJiam1tIn0.YG1P0l-N-2-qR8BV5nv4og';
+
+            const searchBox = new mapboxsearch.MapboxSearchBox();
+
+            searchBox.accessToken = mapboxAccessToken;
+            searchBox.options = {
+                language: 'en',
+                bbox: [-74.2596399, 40.477399, -73.700292, 40.917577] // New York City bounding box
+            };
+
+            searchBox.mapboxgl = mapboxgl;
+            searchBox.marker = true;
+
+            searchBox.bindMap(map);
+            const searchBoxContainer = document.getElementById('search-box-container');
+            searchBoxContainer.appendChild(searchBox);
+            
+            // Apply the same styles to the search input inside the searchBoxContainer
+            const searchBoxInput = searchBoxContainer.querySelector('input[type="text"]');
+            searchBoxInput.style.width = '100%';
+            searchBoxInput.style.padding = '10px';
+            searchBoxInput.style.marginBottom = '10px';
+            searchBoxInput.style.boxSizing = 'border-box';
+            searchBoxInput.style.fontSize = '16px';
+            searchBoxInput.style.fontFamily = 'Lato, sans-serif';
+            searchBoxInput.style.paddingLeft = '35px'; 
+            searchBoxInput.style.paddingTop = '20px'; 
+            searchBoxInput.placeholder = 'Search address';
+
+        };
+
+        async function getAddress(coordinates) {
+            const [longitude, latitude] = coordinates;
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.features[0]?.place_name || 'Address not found';
+        }
+
+        async function getCoordinates(address) {
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}&bbox=-74.2596399,40.477399,-73.700292,40.917577`; // New York City bounding box
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.features.length > 0) {
+                return data.features[0].center;
+            }
+            return null;
+        }
+
+        function searchAndZoom(query) {
+            getCoordinates(query).then(coordinates => {
+                if (coordinates) {
+                    map.flyTo({
+                        center: coordinates,
+                        zoom: 14
+                    });
+                }
+            });
+        }
+
+        map.on('load', () => {
+            populateSidebar();
+
+            // Load data for different years
+            Promise.all([
+                d3.csv('yes_2023_corr.csv'),
+                d3.csv('yes_2022_corr.csv'),
+                d3.csv('yes_2021_corr.csv'),
+                d3.csv('yes_2020_corr.csv'),
+                d3.csv('yes_2019_corr.csv'),
+                d3.csv('yes_2018_corr.csv')
+                // Add more years as needed
+            ]).then(([data2023, data2022, data2021, data2020, data2019, data2018]) => {
+                summonsData['2023'] = data2023;
+                summonsData['2022'] = data2022;
+                summonsData['2021'] = data2021;
+                summonsData['2020'] = data2020;
+                summonsData['2019'] = data2019;
+                summonsData['2018'] = data2018;
+
+                console.log('Data loaded:');
+                console.log('2023:', data2023.length);
+                console.log('2022:', data2022.length);
+                console.log('2021:', data2021.length);
+                console.log('2020:', data2020.length);
+                console.log('2019:', data2019.length);
+                console.log('2018:', data2018.length);
+
+                // Initialize the map with the current year's data
+                const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
+                console.log('Summons GeoJSON:', summonsGeoJson); // Debugging output
+                addSummonsLayer(summonsGeoJson);
+            }).catch(error => {
+                console.error('Error loading the summons CSV files:', error);
             });
         });
     </script>
