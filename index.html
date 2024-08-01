@@ -7,8 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet">
     <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
-    <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0-beta.21/web.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <style>
         html, body {
@@ -75,7 +76,6 @@
             margin-bottom: 10px;
             box-sizing: border-box;
             font-size: 15px;
-            
         }
 
         #suggestions {
@@ -145,7 +145,9 @@
         }
 
         .mapboxgl-ctrl-geocoder--icon-search {
-            left: 10px;
+            width: 15px; /* Adjust the width as needed */
+            height: 15px; /* Adjust the height as needed */
+            left: 1px;
             margin-left: 10px;
         }
 
@@ -195,7 +197,7 @@
     <div id="map"></div>
 
     <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHloYm8yMmowMng1MmxvYWZleTJiam1tIn0.YG1P0l-N-2-qR8BV5nv4og';
+        mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHo2M2x6ZDEybzhoMmpvaWEzemg2bzhyIn0.EorVdgNT0Uj_7ncSDV8NGQ';
 
         const map = new mapboxgl.Map({
             container: 'map', // container ID
@@ -203,6 +205,14 @@
             zoom: 12,
             style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph'
         });
+
+        const geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            bbox: [-74.2596399, 40.477399, -73.700292, 40.917577], // New York City bounding box
+            mapboxgl: mapboxgl
+        });
+
+        document.getElementById('search-box-container').appendChild(geocoder.onAdd(map));
 
         const colors = {
             'DISORDERLY BEHAVIOR': '#F5D800',
@@ -407,39 +417,6 @@
             const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
             addSummonsLayer(summonsGeoJson);
         }
-
-        const script = document.getElementById('search-js');
-        script.onload = function () {
-            const mapboxAccessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHloYm8yMmowMng1MmxvYWZleTJiam1tIn0.YG1P0l-N-2-qR8BV5nv4og';
-
-            const searchBox = new mapboxsearch.MapboxSearchBox();
-
-            searchBox.accessToken = mapboxAccessToken;
-            searchBox.options = {
-                language: 'en',
-                bbox: [-74.2596399, 40.477399, -73.700292, 40.917577] // New York City bounding box
-            };
-
-            searchBox.mapboxgl = mapboxgl;
-            searchBox.marker = true;
-
-            searchBox.bindMap(map);
-            const searchBoxContainer = document.getElementById('search-box-container');
-            searchBoxContainer.appendChild(searchBox);
-            
-            // Apply the same styles to the search input inside the searchBoxContainer
-            const searchBoxInput = searchBoxContainer.querySelector('input[type="text"]');
-            searchBoxInput.style.width = '100%';
-            searchBoxInput.style.padding = '10px';
-            searchBoxInput.style.marginBottom = '10px';
-            searchBoxInput.style.boxSizing = 'border-box';
-            searchBoxInput.style.fontSize = '16px';
-            searchBoxInput.style.fontFamily = 'Lato, sans-serif';
-            searchBoxInput.style.paddingLeft = '35px'; 
-            searchBoxInput.style.paddingTop = '20px'; 
-            searchBoxInput.placeholder = 'Search address';
-
-        };
 
         async function getAddress(coordinates) {
             const [longitude, latitude] = coordinates;
