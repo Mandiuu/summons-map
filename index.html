@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Look at NYC summons</title>
+    <title>Look at NYC Summons</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet">
     <link rel="stylesheet" href="reset.css">
@@ -79,18 +79,40 @@
         }
 
         #yearSlider {
+            -webkit-appearance: none;
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
+            height: 8px;
+            background: #ddd;
+            outline: none;
+            opacity: 0.9;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        #yearSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #FF69B4; /* Pink color for the dot */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        #yearSlider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #FF69B4; /* Pink color for the dot */
+            cursor: pointer;
+            border-radius: 50%;
         }
 
         #yearLabel {
-            text-align: left;
+            display: flex;
+            justify-content: space-between;
             color: white;
             font-size: 16px;
-            margin-bottom: 1px;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .sidebar-footer {
@@ -164,10 +186,17 @@
     <div id="sidebar">
         <div>
             <div class="sidebar-header">NYC Summons</div>
-            <div id="yearLabel">Year: <span id="yearValue">2023</span></div>
+            <div id="yearLabel">
+                <span>2018</span>
+                <span>'19</span>
+                <span>'20</span>
+                <span>'21</span>
+                <span>'22</span>
+                <span>2023</span>
+            </div>
             <input type="range" id="yearSlider" min="2018" max="2023" value="2023" step="1">
             <div id="search-box-container"></div>
-            <div class="sidebar-header2" id="precinctMessage">Categories</div>
+            <div class="sidebar-header2" id="precinctInfo">Categories</div>
             <div id="categoryList"></div>
         </div>
         <div class="sidebar-footer">By Carla Mandiola</div>
@@ -181,7 +210,7 @@
             const map = new mapboxgl.Map({
                 container: 'map',
                 center: [-74.0060, 40.7128],
-                zoom: 12,
+                zoom: 10,
                 style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph'
             });
 
@@ -238,7 +267,7 @@
                 categoryList.appendChild(allBox);
 
                 // Update precinct message
-                const precinctMessage = document.getElementById('precinctMessage');
+                const precinctMessage = document.getElementById('precinctInfo');
                 if (precinct) {
                     precinctMessage.innerText = `That address is in the ${precinct} precinct. This is the amount of summonses:`;
                 } else {
@@ -475,7 +504,7 @@
             geocoder.on('clear', () => {
                 map.flyTo({
                     center: [-74.0060, 40.7128],
-                    zoom: 12,
+                    zoom: 10,
                     speed: 1, // Make the transition smooth
                     curve: 1
                 });
@@ -483,8 +512,14 @@
                 populateSidebar(countSummonsesPerCategory(summonsData[currentYear]));
 
                 // Clear the precinct message
-                const precinctMessage = document.getElementById('precinctMessage');
+                const precinctMessage = document.getElementById('precinctInfo');
                 precinctMessage.innerText = 'Categories';
+            });
+
+            document.getElementById('yearSlider').addEventListener('input', (e) => {
+                currentYear = e.target.value;
+                document.getElementById('yearValue').textContent = currentYear;
+                updateMap();
             });
         });
     </script>
