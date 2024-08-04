@@ -11,6 +11,7 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
     <style>
         html, body {
             height: 100%;
@@ -23,7 +24,7 @@
         }
 
         #sidebar {
-            width: 250px;
+            width: 300px; /* Adjust width as needed */
             background: #333;
             color: white;
             padding: 10px;
@@ -35,29 +36,36 @@
             justify-content: space-between;
         }
 
-        .category-button {
-            display: block;
+        #categoryList {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Center the boxes */
+        }
+
+        .category-box {
+            width: calc(40% - 10px); /* Fit 2 boxes per row with some margin */
+            height: 80px; /* Adjust height for smaller square boxes */
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 10px;
-            margin-bottom: 5px;
-            background: #444;
+            margin: 10px; /* Reduce margin for less spacing between boxes */
             color: white;
-            text-align: left;
+            text-align: center;
             border: none;
             cursor: pointer;
-            width: 100%;
+            flex-direction: column;
             box-sizing: border-box;
+            font-size: 12px; /* Adjust font size as needed */
         }
 
-        .category-button:hover {
-            background: #555;
+        .category-box span:first-child {
+            font-weight: bold; /* Make the category text bold */
+            font-size: 16px; /* Adjust the font size for category text */
         }
 
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            display: inline-block;
-            vertical-align: middle;
+        .category-box span:nth-child(2) {
+            font-size: 14px; /* Adjust the font size for the number */
         }
 
         #map {
@@ -68,35 +76,6 @@
         .mapboxgl-popup {
             max-width: 400px;
             font: 12px/20px 'Lato', Arial, Helvetica, sans-serif;
-        }
-
-        #searchBar {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            font-size: 15px;
-        }
-
-        #suggestions {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-            background: white;
-            color: black;
-            border: 1px solid #ccc;
-            max-height: 150px;
-            overflow-y: auto;
-            font-size: 13px;
-        }
-
-        #suggestions li {
-            padding: 5px;
-            cursor: pointer;
-        }
-
-        #suggestions li:hover {
-            background: #eee;
         }
 
         #yearSlider {
@@ -161,8 +140,9 @@
                 font-size: 16px;
             }
 
-            .category-button {
-                font-size: 14px;
+            .category-box {
+                font-size: 12px;
+                width: calc(50% - 10px); /* Fit 2 boxes per row on smaller screens */
             }
 
             #yearLabel, .sidebar-header, .sidebar-header2 {
@@ -187,9 +167,7 @@
             <div id="yearLabel">Year: <span id="yearValue">2023</span></div>
             <input type="range" id="yearSlider" min="2018" max="2023" value="2023" step="1">
             <div id="search-box-container"></div>
-            <div class="sidebar-header2">Categories</div>
-            <input type="text" id="searchBar" placeholder="Search offense descriptions">
-            <ul id="suggestions"></ul>
+            <div class="sidebar-header2" id="precinctMessage">Categories</div>
             <div id="categoryList"></div>
         </div>
         <div class="sidebar-footer">By Carla Mandiola</div>
@@ -197,290 +175,316 @@
     <div id="map"></div>
 
     <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHo2M2x6ZDEybzhoMmpvaWEzemg2bzhyIn0.EorVdgNT0Uj_7ncSDV8NGQ';
+        document.addEventListener('DOMContentLoaded', (event) => {
+            mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHo2M2x6ZDEybzhoMmpvaWEzemg2bzhyIn0.EorVdgNT0Uj_7ncSDV8NGQ';
 
-        const map = new mapboxgl.Map({
-            container: 'map', // container ID
-            center: [-74.0060, 40.7128], // starting position [lng, lat]
-            zoom: 12,
-            style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph'
-        });
-
-        const geocoder = new MapboxGeocoder({
-            accessToken: mapboxgl.accessToken,
-            bbox: [-74.2596399, 40.477399, -73.700292, 40.917577], // New York City bounding box
-            mapboxgl: mapboxgl
-        });
-
-        document.getElementById('search-box-container').appendChild(geocoder.onAdd(map));
-
-        const colors = {
-            'DISORDERLY BEHAVIOR': '#F5D800',
-            'BIKE': '#7A28CB',
-            'VEHICLE': '#5BC0EB',
-            'DISOBEY BUSINESS AND STREET VENDOR REGULATIONS': '#0C8346',
-            'NOISE': '#FF579F',
-            'PROPERTY': '#F5711F',
-            'ALCOHOL/DRUGS': '#FD151B'
-        };
-
-        const categories = Object.keys(colors);
-        let summonsData = {};
-        let currentYear = '2023';
-
-        function populateSidebar() {
-            const categoryList = document.getElementById('categoryList');
-            
-            categoryList.innerHTML = ''; // Clear previous list
-            categories.forEach(category => {
-                const button = document.createElement('button');
-                button.className = 'category-button';
-                button.innerHTML = `<span class="legend-color" style="background-color: ${colors[category]}"></span>${category}`;
-                button.onclick = () => filterSummonsLayer(category);
-                categoryList.appendChild(button);
+            const map = new mapboxgl.Map({
+                container: 'map',
+                center: [-74.0060, 40.7128],
+                zoom: 12,
+                style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph'
             });
 
-            // Add a button for "All"
-            const allButton = document.createElement('button');
-            allButton.className = 'category-button';
-            allButton.innerHTML = 'All';
-            allButton.onclick = () => filterSummonsLayer('all');
-            categoryList.appendChild(allButton);
-        }
+            const geocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                bbox: [-74.2596399, 40.477399, -73.700292, 40.917577],
+                mapboxgl: mapboxgl
+            });
 
-        function cleanCoordinate(coord) {
-            if (coord === undefined || coord === null) {
-                return null;
-            }
-            let cleaned = coord.replace(/[^0-9.-]+/g, '');
-            return parseFloat(cleaned);
-        }
+            document.getElementById('search-box-container').appendChild(geocoder.onAdd(map));
 
-        function mapSummonsData(data) {
-            return {
-                type: 'FeatureCollection',
-                features: data.map(d => {
-                    const longitude = cleanCoordinate(d.Longitude);
-                    const latitude = cleanCoordinate(d.Latitude);
-                    // Skip if either coordinate is null
-                    if (longitude === null || latitude === null) {
-                        return null;
-                    }
-                    return {
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [longitude, latitude]
-                        },
-                        properties: {
-                            offense: d.OFFENSE_DESCRIPTION,
-                            precinct: d['PRECINCT_OF_OCCUR'],
-                            borough: d.BORO,
-                            category: d.CATEGORY,
-                            address: ''
-                        }
-                    };
-                }).filter(feature => feature !== null) // Filter out null features
+            const colors = {
+                'DISORDERLY BEHAVIOR': '#f6b93b',
+                'BIKE': '#60a3bc',
+                'VEHICLE': '#4a69bd',
+                'DISOBEY BUSINESS': '#A3CB38',
+                'NOISE': '#cf6a87',
+                'PROPERTY': '#574b90',
+                'ALCOHOL/DRUGS': '#e55039',
+                'ALL': '#95afc0'
             };
-        }
 
-        function addSummonsLayer(summonsGeoJson) {
-            console.log('Adding summons layer with data:', summonsGeoJson);
-            if (map.getSource('summonses')) {
-                map.getSource('summonses').setData(summonsGeoJson);
-            } else {
-                map.addSource('summonses', {
-                    type: 'geojson',
-                    data: summonsGeoJson
+            const categories = ['DISORDERLY BEHAVIOR', 'BIKE', 'VEHICLE', 'DISOBEY BUSINESS', 'NOISE', 'PROPERTY', 'ALCOHOL/DRUGS'];
+            const categoryMap = {
+                'DISORDERLY BEHAVIOR': 'DISORDERLY BEHAVIOR',
+                'BIKE': 'BIKE',
+                'VEHICLE': 'VEHICLE',
+                'DISOBEY BUSINESS AND STREET VENDOR REGULATIONS': 'DISOBEY BUSINESS',
+                'NOISE': 'NOISE',
+                'PROPERTY': 'PROPERTY',
+                'ALCOHOL/DRUGS': 'ALCOHOL/DRUGS'
+            };
+            let summonsData = {};
+            let precinctsData = null;
+            let currentYear = '2023';
+
+            function populateSidebar(counts = {}, precinct = null) {
+                const categoryList = document.getElementById('categoryList');
+                categoryList.innerHTML = ''; // Clear previous list
+                categories.forEach(category => {
+                    const box = document.createElement('div');
+                    box.className = 'category-box';
+                    box.style.backgroundColor = colors[category];
+                    box.innerHTML = `<span>${category}</span><span class="category-count" id="${category.replace(/ /g, '-').toLowerCase()}-count">${counts[category] || 0}</span>`;
+                    box.addEventListener('click', () => filterSummonsLayer(category));
+                    categoryList.appendChild(box);
                 });
+                // Add the "ALL" category box last
+                const allBox = document.createElement('div');
+                allBox.className = 'category-box';
+                allBox.style.backgroundColor = colors['ALL'];
+                allBox.innerHTML = `<span>ALL</span><span class="category-count" id="all-count">${counts['ALL'] || 0}</span>`;
+                allBox.addEventListener('click', () => filterSummonsLayer('all'));
+                categoryList.appendChild(allBox);
 
-                map.addLayer({
-                    id: 'summonses',
-                    type: 'circle',
-                    source: 'summonses',
-                    paint: {
-                        'circle-radius': 5,
-                        'circle-color': [
-                            'match',
-                            ['get', 'category'],
-                            ...categories.reduce((acc, category) => [...acc, category, colors[category]], []),
-                            '#FF0000' // default color
-                        ],
-                        'circle-opacity': 0.6
-                    }
-                });
+                // Update precinct message
+                const precinctMessage = document.getElementById('precinctMessage');
+                if (precinct) {
+                    precinctMessage.innerText = `That address is in the ${precinct} precinct. This is the amount of summonses:`;
+                } else {
+                    precinctMessage.innerText = 'Categories';
+                }
+            }
 
-                const summonsPopup = new mapboxgl.Popup({
-                    closeButton: false,
-                    closeOnClick: false
-                });
+            function cleanCoordinate(coord) {
+                if (coord === undefined || coord === null) {
+                    return null;
+                }
+                let cleaned = coord.replace(/[^0-9.-]+/g, '');
+                return parseFloat(cleaned);
+            }
 
-                map.on('mouseenter', 'summonses', (e) => {
-                    map.getCanvas().style.cursor = 'pointer';
+            function mapSummonsData(data) {
+                return {
+                    type: 'FeatureCollection',
+                    features: data.map(d => {
+                        const longitude = cleanCoordinate(d.Longitude);
+                        const latitude = cleanCoordinate(d.Latitude);
+                        if (longitude === null || latitude === null) {
+                            return null;
+                        }
+                        return {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [longitude, latitude]
+                            },
+                            properties: {
+                                offense: d.OFFENSE_DESCRIPTION,
+                                precinct: d['PRECINCT_OF_OCCUR'],
+                                borough: d.BORO,
+                                category: categoryMap[d.CATEGORY] || d.CATEGORY,
+                                address: ''
+                            }
+                        };
+                    }).filter(feature => feature !== null)
+                };
+            }
 
-                    const coordinates = e.features[0].geometry.coordinates.slice();
-                    const { offense, precinct, borough, category } = e.features[0].properties;
+            function addSummonsLayer(summonsGeoJson) {
+                console.log('Adding summons layer with data:', summonsGeoJson);
+                if (map.getSource('summonses')) {
+                    map.getSource('summonses').setData(summonsGeoJson);
+                } else {
+                    map.addSource('summonses', {
+                        type: 'geojson',
+                        data: summonsGeoJson
+                    });
 
-                    getAddress(coordinates).then(address => {
-                        e.features[0].properties.address = address;
-                        summonsPopup.setLngLat(coordinates).setHTML(`
-                            <strong>Offense:</strong> ${offense}<br>
-                            <strong>Precinct:</strong> ${precinct}<br>
-                            <strong>Borough:</strong> ${borough}<br>
-                            <strong>Address:</strong> ${address}
-                        `).addTo(map);
-
-                        // Center the map on the popup if coordinates are valid
-                        if (coordinates[0] !== null && coordinates[1] !== null) {
-                         
+                    map.addLayer({
+                        id: 'summonses',
+                        type: 'circle',
+                        source: 'summonses',
+                        paint: {
+                            'circle-radius': 5,
+                            'circle-color': [
+                                'match',
+                                ['get', 'category'],
+                                ...categories.reduce((acc, category) => [...acc, category, colors[category]], []),
+                                colors['ALL']
+                            ],
+                            'circle-opacity': 0.6
                         }
                     });
-                });
 
-                map.on('mouseleave', 'summonses', () => {
-                    map.getCanvas().style.cursor = '';
-                    summonsPopup.remove();
-                });
-            }
-        }
+                    const summonsPopup = new mapboxgl.Popup({
+                        closeButton: false,
+                        closeOnClick: false
+                    });
 
-        function filterSummonsLayer(category) {
-            if (category === 'all') {
-                map.setFilter('summonses', null);
-            } else {
-                map.setFilter('summonses', ['==', ['get', 'category'], category]);
-            }
-        }
+                    map.on('mouseenter', 'summonses', (e) => {
+                        map.getCanvas().style.cursor = 'pointer';
+                        const coordinates = e.features[0].geometry.coordinates.slice();
+                        const { offense, precinct, borough, category } = e.features[0].properties;
 
-        function filterByOffense(query) {
-            const lowercaseQuery = query.toLowerCase();
-            if (!query) {
-                filterSummonsLayer('all');
-                return;
-            }
-            const filter = [
-                'all',
-                ['any',
-                    ['in', lowercaseQuery, ['downcase', ['get', 'offense']]],
-                    ['==', ['downcase', ['get', 'offense']], lowercaseQuery]
-                ]
-            ];
-            console.log('Filter:', filter); // Debugging output
-            map.setFilter('summonses', filter);
-        }
+                        getAddress(coordinates).then(address => {
+                            e.features[0].properties.address = address;
+                            summonsPopup.setLngLat(coordinates).setHTML(`
+                                <strong>Offense:</strong> ${offense}<br>
+                                <strong>Precinct:</strong> ${precinct}<br>
+                                <strong>Borough:</strong> ${borough}<br>
+                                <strong>Address:</strong> ${address}
+                            `).addTo(map);
+                        });
+                    });
 
-        function showSuggestions(query) {
-            const suggestions = document.getElementById('suggestions');
-            suggestions.innerHTML = ''; // Clear previous suggestions
-
-            if (!query) {
-                return;
-            }
-
-            const lowercaseQuery = query.toLowerCase();
-            const uniqueSuggestions = new Set(
-                summonsData[currentYear]
-                    .map(d => d.OFFENSE_DESCRIPTION)
-                    .filter(offense => offense.toLowerCase().includes(lowercaseQuery))
-            );
-            const matchingSuggestions = Array.from(uniqueSuggestions).slice(0, 5); // Limit to 5 suggestions
-
-            matchingSuggestions.forEach(suggestion => {
-                const li = document.createElement('li');
-                li.textContent = suggestion;
-                li.onclick = () => {
-                    document.getElementById('searchBar').value = suggestion;
-                    filterByOffense(suggestion);
-                    suggestions.innerHTML = '';
-                };
-                suggestions.appendChild(li);
-            });
-        }
-
-        let searchTimeout;
-        document.getElementById('searchBar').addEventListener('input', (e) => {
-            const query = e.target.value;
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                showSuggestions(query);
-                filterByOffense(query);
-            }, 300); // Delay to prevent excessive requests
-        });
-
-        document.getElementById('yearSlider').addEventListener('input', (e) => {
-            currentYear = e.target.value;
-            document.getElementById('yearValue').textContent = currentYear;
-            updateMap();
-        });
-
-        function updateMap() {
-            const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
-            addSummonsLayer(summonsGeoJson);
-        }
-
-        async function getAddress(coordinates) {
-            const [longitude, latitude] = coordinates;
-            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.features[0]?.place_name || 'Address not found';
-        }
-
-        async function getCoordinates(address) {
-            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}&bbox=-74.2596399,40.477399,-73.700292,40.917577`; // New York City bounding box
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.features.length > 0) {
-                return data.features[0].center;
-            }
-            return null;
-        }
-
-        function searchAndZoom(query) {
-            getCoordinates(query).then(coordinates => {
-                if (coordinates) {
-                    map.flyTo({
-                        center: coordinates,
-                        zoom: 14
+                    map.on('mouseleave', 'summonses', () => {
+                        map.getCanvas().style.cursor = '';
+                        summonsPopup.remove();
                     });
                 }
-            });
-        }
+            }
 
-        map.on('load', () => {
-            populateSidebar();
+            function filterSummonsLayer(category) {
+                if (category === 'all') {
+                    map.setFilter('summonses', null);
+                } else {
+                    map.setFilter('summonses', ['==', ['get', 'category'], category]);
+                }
+            }
 
-            // Load data for different years
-            Promise.all([
-                d3.csv('yes_2023_corr.csv'),
-                d3.csv('yes_2022_corr.csv'),
-                d3.csv('yes_2021_corr.csv'),
-                d3.csv('yes_2020_corr.csv'),
-                d3.csv('yes_2019_corr.csv'),
-                d3.csv('yes_2018_corr.csv')
-                // Add more years as needed
-            ]).then(([data2023, data2022, data2021, data2020, data2019, data2018]) => {
-                summonsData['2023'] = data2023;
-                summonsData['2022'] = data2022;
-                summonsData['2021'] = data2021;
-                summonsData['2020'] = data2020;
-                summonsData['2019'] = data2019;
-                summonsData['2018'] = data2018;
+            function countSummonsesPerCategory(data) {
+                const categoryCounts = { ALL: 0 };
+                categories.forEach(category => {
+                    categoryCounts[category] = 0;
+                });
+                data.forEach(d => {
+                    const mappedCategory = categoryMap[d.CATEGORY] || d.CATEGORY;
+                    if (categoryCounts.hasOwnProperty(mappedCategory)) {
+                        categoryCounts[mappedCategory]++;
+                        categoryCounts['ALL']++;
+                    }
+                });
+                return categoryCounts;
+            }
 
-                console.log('Data loaded:');
-                console.log('2023:', data2023.length);
-                console.log('2022:', data2022.length);
-                console.log('2021:', data2021.length);
-                console.log('2020:', data2020.length);
-                console.log('2019:', data2019.length);
-                console.log('2018:', data2018.length);
-
-                // Initialize the map with the current year's data
+            function updateMap() {
                 const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
-                console.log('Summons GeoJSON:', summonsGeoJson); // Debugging output
+                const counts = countSummonsesPerCategory(summonsData[currentYear]);
+                populateSidebar(counts);
                 addSummonsLayer(summonsGeoJson);
-            }).catch(error => {
-                console.error('Error loading the summons CSV files:', error);
+            }
+
+            async function getAddress(coordinates) {
+                const [longitude, latitude] = coordinates;
+                const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                return data.features[0]?.place_name || 'Address not found';
+            }
+
+            async function getCoordinates(address) {
+                const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}&bbox=-74.2596399,40.477399,-73.700292,40.917577`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.features.length > 0) {
+                    return data.features[0].center;
+                }
+                return null;
+            }
+
+            async function getPrecinctByCoordinates(coordinates) {
+                if (!precinctsData) {
+                    const response = await fetch('nyc_precinct_boundaries.geojson');
+                    precinctsData = await response.json();
+                }
+
+                const point = turf.point(coordinates);
+                for (const feature of precinctsData.features) {
+                    if (turf.booleanPointInPolygon(point, feature)) {
+                        return feature.properties.precinct;
+                    }
+                }
+
+                console.error('No precinct found for coordinates:', coordinates);
+                return null;
+            }
+
+            async function getPrecinctByAddress(address) {
+                const coordinates = await getCoordinates(address);
+                if (coordinates) {
+                    return await getPrecinctByCoordinates(coordinates);
+                } else {
+                    console.error('No coordinates found for address:', address);
+                    return null;
+                }
+            }
+
+            function updateCategoryCountsForPrecinct(precinct) {
+                const counts = { ALL: 0 };
+                categories.forEach(category => counts[category] = 0);
+                summonsData[currentYear].forEach(d => {
+                    const mappedCategory = categoryMap[d.CATEGORY] || d.CATEGORY;
+                    if (d['PRECINCT_OF_OCCUR'] == precinct) {
+                        if (counts.hasOwnProperty(mappedCategory)) {
+                            counts[mappedCategory]++;
+                            counts['ALL']++;
+                        }
+                    }
+                });
+                populateSidebar(counts, precinct);
+            }
+
+            geocoder.on('result', async (e) => {
+                const coordinates = e.result.geometry.coordinates;
+                if (coordinates) {
+                    const precinct = await getPrecinctByCoordinates(coordinates);
+                    if (precinct) {
+                        updateCategoryCountsForPrecinct(precinct);
+                    } else {
+                        alert('Precinct not found for the given address.');
+                    }
+                } else {
+                    alert('Please enter an address.');
+                }
+            });
+
+            map.on('load', () => {
+                populateSidebar();
+
+                Promise.all([
+                    d3.csv('yes_2023_corr.csv'),
+                    d3.csv('yes_2022_corr.csv'),
+                    d3.csv('yes_2021_corr.csv'),
+                    d3.csv('yes_2020_corr.csv'),
+                    d3.csv('yes_2019_corr.csv'),
+                    d3.csv('yes_2018_corr.csv')
+                ]).then(([data2023, data2022, data2021, data2020, data2019, data2018]) => {
+                    summonsData['2023'] = data2023;
+                    summonsData['2022'] = data2022;
+                    summonsData['2021'] = data2021;
+                    summonsData['2020'] = data2020;
+                    summonsData['2019'] = data2019;
+                    summonsData['2018'] = data2018;
+
+                    console.log('Data loaded:');
+                    console.log('2023:', data2023.length);
+                    console.log('2022:', data2022.length);
+                    console.log('2021:', data2021.length);
+                    console.log('2020:', data2020.length);
+                    console.log('2019:', data2019.length);
+                    console.log('2018:', data2018.length);
+
+                    updateMap();
+                }).catch(error => {
+                    console.error('Error loading the summons CSV files:', error);
+                });
+            });
+
+            // Handle geocoder clear event to reset the map
+            geocoder.on('clear', () => {
+                map.flyTo({
+                    center: [-74.0060, 40.7128],
+                    zoom: 12,
+                    speed: 1, // Make the transition smooth
+                    curve: 1
+                });
+
+                populateSidebar(countSummonsesPerCategory(summonsData[currentYear]));
+
+                // Clear the precinct message
+                const precinctMessage = document.getElementById('precinctMessage');
+                precinctMessage.innerText = 'Categories';
             });
         });
     </script>
