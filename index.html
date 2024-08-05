@@ -24,13 +24,13 @@
         }
 
         #sidebar {
-            width: 300px; /* Adjust width as needed */
+            width: 300px;
             background: #333;
             color: white;
             padding: 10px;
             overflow-y: auto;
             flex-shrink: 0;
-            z-index: 1; /* Ensure the sidebar is on top */
+            z-index: 1;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -39,33 +39,60 @@
         #categoryList {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center; /* Center the boxes */
+            justify-content: center;
         }
 
         .category-box {
-            width: calc(40% - 10px); /* Fit 2 boxes per row with some margin */
-            height: 80px; /* Adjust height for smaller square boxes */
+            width: calc(40% - 10px);
+            height: 80px;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 10px;
-            margin: 10px; /* Reduce margin for less spacing between boxes */
+            margin: 10px;
             color: white;
             text-align: center;
             border: none;
             cursor: pointer;
             flex-direction: column;
             box-sizing: border-box;
-            font-size: 12px; /* Adjust font size as needed */
+            font-size: 12px;
+            position: relative;
         }
 
         .category-box span:first-child {
-            font-weight: bold; /* Make the category text bold */
-            font-size: 16px; /* Adjust the font size for category text */
+            font-weight: bold;
+            font-size: 16px;
         }
 
         .category-box span:nth-child(2) {
-            font-size: 14px; /* Adjust the font size for the number */
+            font-size: 14px;
+        }
+
+        .triangle-up {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid red;
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            -webkit-filter: drop-shadow(0 0 2px white);
+            filter: drop-shadow(0 0 2px white);
+        }
+
+        .triangle-down {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid green;
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            -webkit-filter: drop-shadow(0 0 2px white);
+            filter: drop-shadow(0 0 2px white);
         }
 
         #map {
@@ -94,7 +121,7 @@
             appearance: none;
             width: 16px;
             height: 16px;
-            background: #FF69B4; /* Pink color for the dot */
+            background: #FF69B4;
             cursor: pointer;
             border-radius: 50%;
         }
@@ -102,7 +129,7 @@
         #yearSlider::-moz-range-thumb {
             width: 16px;
             height: 16px;
-            background: #FF69B4; /* Pink color for the dot */
+            background: #FF69B4;
             cursor: pointer;
             border-radius: 50%;
         }
@@ -146,14 +173,14 @@
         }
 
         .mapboxgl-ctrl-geocoder--icon-search {
-            width: 15px; /* Adjust the width as needed */
-            height: 15px; /* Adjust the height as needed */
+            width: 15px;
+            height: 15px;
             left: 1px;
             margin-left: 10px;
         }
 
         .mapboxgl-ctrl-geocoder--input::placeholder {
-            padding-left: 25px; /* Adjust to ensure the text doesn't overlap with the icon */
+            padding-left: 25px;
         }
 
         @media (max-width: 768px) {
@@ -164,7 +191,7 @@
 
             .category-box {
                 font-size: 12px;
-                width: calc(50% - 10px); /* Fit 2 boxes per row on smaller screens */
+                width: calc(50% - 10px);
             }
 
             #yearLabel, .sidebar-header, .sidebar-header2 {
@@ -208,15 +235,16 @@
             mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHo2M2x6ZDEybzhoMmpvaWEzemg2bzhyIn0.EorVdgNT0Uj_7ncSDV8NGQ';
 
             const map = new mapboxgl.Map({
-    container: 'map',
-    center: [-74.0060, 40.7128],
-    zoom: 12,
-    style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph',
-    maxBounds: [
-        [-74.259090, 40.477399], // Southwest coordinates (bottom-left)
-        [-73.700272, 40.917577]  // Northeast coordinates (top-right)
-    ]
-});
+                container: 'map',
+                center: [-74.0060, 40.7128],
+                zoom: 10,
+                style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph',
+                maxBounds: [
+                    [-74.259090, 40.477399], // Southwest coordinates
+                    [-73.700272, 40.917577]  // Northeast coordinates
+                ]
+            });
+
             const geocoder = new MapboxGeocoder({
                 accessToken: mapboxgl.accessToken,
                 bbox: [-74.2596399, 40.477399, -73.700292, 40.917577],
@@ -249,6 +277,34 @@
             let summonsData = {};
             let precinctsData = null;
             let currentYear = '2023';
+            let averageSummonses = {};
+
+            function calculateAverageSummonses() {
+                const totalCounts = {};
+                const precinctCounts = {};
+
+                categories.forEach(category => {
+                    totalCounts[category] = 0;
+                    precinctCounts[category] = {};
+                });
+
+                for (let year in summonsData) {
+                    summonsData[year].forEach(d => {
+                        const category = categoryMap[d.CATEGORY] || d.CATEGORY;
+                        if (totalCounts.hasOwnProperty(category)) {
+                            totalCounts[category]++;
+                            if (!precinctCounts[category].hasOwnProperty(d['PRECINCT_OF_OCCUR'])) {
+                                precinctCounts[category][d['PRECINCT_OF_OCCUR']] = 0;
+                            }
+                            precinctCounts[category][d['PRECINCT_OF_OCCUR']]++;
+                        }
+                    });
+                }
+
+                categories.forEach(category => {
+                    averageSummonses[category] = totalCounts[category] / Object.keys(precinctCounts[category]).length;
+                });
+            }
 
             function populateSidebar(counts = {}, precinct = null) {
                 const categoryList = document.getElementById('categoryList');
@@ -258,6 +314,17 @@
                     box.className = 'category-box';
                     box.style.backgroundColor = colors[category];
                     box.innerHTML = `<span>${category}</span><span class="category-count" id="${category.replace(/ /g, '-').toLowerCase()}-count">${counts[category] || 0}</span>`;
+
+                    // Add triangle indicators for above/below average
+                    if (precinct) {
+                        const count = counts[category] || 0;
+                        if (count > averageSummonses[category]) {
+                            box.innerHTML += '<div class="triangle-up"></div>'; // Above average, red triangle
+                        } else if (count < averageSummonses[category]) {
+                            box.innerHTML += '<div class="triangle-down"></div>'; // Below average, green triangle
+                        }
+                    }
+
                     box.addEventListener('click', () => filterSummonsLayer(category));
                     categoryList.appendChild(box);
                 });
@@ -489,14 +556,7 @@
                     summonsData['2019'] = data2019;
                     summonsData['2018'] = data2018;
 
-                    console.log('Data loaded:');
-                    console.log('2023:', data2023.length);
-                    console.log('2022:', data2022.length);
-                    console.log('2021:', data2021.length);
-                    console.log('2020:', data2020.length);
-                    console.log('2019:', data2019.length);
-                    console.log('2018:', data2018.length);
-
+                    calculateAverageSummonses();
                     updateMap();
                 }).catch(error => {
                     console.error('Error loading the summons CSV files:', error);
@@ -508,7 +568,7 @@
                 map.flyTo({
                     center: [-74.0060, 40.7128],
                     zoom: 10,
-                    speed: 1, // Make the transition smooth
+                    speed: 1,
                     curve: 1
                 });
 
