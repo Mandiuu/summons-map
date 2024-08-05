@@ -279,7 +279,7 @@
             let currentYear = '2023';
             let averageSummonses = {};
 
-            function calculateAverageSummonses() {
+            function calculateAverageSummonses(year) {
                 const totalCounts = {};
                 const precinctCounts = {};
 
@@ -288,18 +288,16 @@
                     precinctCounts[category] = {};
                 });
 
-                for (let year in summonsData) {
-                    summonsData[year].forEach(d => {
-                        const category = categoryMap[d.CATEGORY] || d.CATEGORY;
-                        if (totalCounts.hasOwnProperty(category)) {
-                            totalCounts[category]++;
-                            if (!precinctCounts[category].hasOwnProperty(d['PRECINCT_OF_OCCUR'])) {
-                                precinctCounts[category][d['PRECINCT_OF_OCCUR']] = 0;
-                            }
-                            precinctCounts[category][d['PRECINCT_OF_OCCUR']]++;
+                summonsData[year].forEach(d => {
+                    const category = categoryMap[d.CATEGORY] || d.CATEGORY;
+                    if (totalCounts.hasOwnProperty(category)) {
+                        totalCounts[category]++;
+                        if (!precinctCounts[category].hasOwnProperty(d['PRECINCT_OF_OCCUR'])) {
+                            precinctCounts[category][d['PRECINCT_OF_OCCUR']] = 0;
                         }
-                    });
-                }
+                        precinctCounts[category][d['PRECINCT_OF_OCCUR']]++;
+                    }
+                });
 
                 categories.forEach(category => {
                     averageSummonses[category] = totalCounts[category] / Object.keys(precinctCounts[category]).length;
@@ -316,13 +314,11 @@
                     box.innerHTML = `<span>${category}</span><span class="category-count" id="${category.replace(/ /g, '-').toLowerCase()}-count">${counts[category] || 0}</span>`;
 
                     // Add triangle indicators for above/below average
-                    if (precinct) {
-                        const count = counts[category] || 0;
-                        if (count > averageSummonses[category]) {
-                            box.innerHTML += '<div class="triangle-up"></div>'; // Above average, red triangle
-                        } else if (count < averageSummonses[category]) {
-                            box.innerHTML += '<div class="triangle-down"></div>'; // Below average, green triangle
-                        }
+                    const average = averageSummonses[category];
+                    if (counts[category] > average) {
+                        box.innerHTML += '<div class="triangle-up"></div>'; // Above average, red triangle
+                    } else if (counts[category] < average) {
+                        box.innerHTML += '<div class="triangle-down"></div>'; // Below average, green triangle
                     }
 
                     box.addEventListener('click', () => filterSummonsLayer(category));
@@ -339,7 +335,7 @@
                 // Update precinct message
                 const precinctMessage = document.getElementById('precinctInfo');
                 if (precinct) {
-                    precinctMessage.innerText = `That address is in the ${precinct} precinct, which has this amount of summonses,`;
+                    precinctMessage.innerText = `That address is in precinct ${precinct}, which has this amount of summonses:`;
                 } else {
                     precinctMessage.innerText = 'Categories';
                 }
@@ -458,6 +454,7 @@
             }
 
             function updateMap() {
+                calculateAverageSummonses(currentYear);
                 const summonsGeoJson = mapSummonsData(summonsData[currentYear]);
                 const counts = countSummonsesPerCategory(summonsData[currentYear]);
                 populateSidebar(counts);
@@ -511,16 +508,17 @@
 
             function updateCategoryCountsForPrecinct(precinct) {
                 const counts = { ALL: 0 };
+                const precinctData = summonsData[currentYear].filter(d => d['PRECINCT_OF_OCCUR'] == precinct);
                 categories.forEach(category => counts[category] = 0);
-                summonsData[currentYear].forEach(d => {
+                precinctData.forEach(d => {
                     const mappedCategory = categoryMap[d.CATEGORY] || d.CATEGORY;
-                    if (d['PRECINCT_OF_OCCUR'] == precinct) {
-                        if (counts.hasOwnProperty(mappedCategory)) {
-                            counts[mappedCategory]++;
-                            counts['ALL']++;
-                        }
+                    if (counts.hasOwnProperty(mappedCategory)) {
+                        counts[mappedCategory]++;
+                        counts['ALL']++;
                     }
                 });
+
+                calculateAverageSummonses(currentYear);
                 populateSidebar(counts, precinct);
             }
 
@@ -556,7 +554,7 @@
                     summonsData['2019'] = data2019;
                     summonsData['2018'] = data2018;
 
-                    calculateAverageSummonses();
+                    console.log('Data loaded:', summonsData); // Debugging
                     updateMap();
                 }).catch(error => {
                     console.error('Error loading the summons CSV files:', error);
@@ -581,6 +579,7 @@
 
             document.getElementById('yearSlider').addEventListener('input', (e) => {
                 currentYear = e.target.value;
+                console.log('Year changed:', currentYear); // Debugging
                 updateMap();
             });
         });
