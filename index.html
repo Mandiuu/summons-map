@@ -208,12 +208,15 @@
             mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHo2M2x6ZDEybzhoMmpvaWEzemg2bzhyIn0.EorVdgNT0Uj_7ncSDV8NGQ';
 
             const map = new mapboxgl.Map({
-                container: 'map',
-                center: [-74.0060, 40.7128],
-                zoom: 10,
-                style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph'
-            });
-
+    container: 'map',
+    center: [-74.0060, 40.7128],
+    zoom: 12,
+    style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph',
+    maxBounds: [
+        [-74.259090, 40.477399], // Southwest coordinates (bottom-left)
+        [-73.700272, 40.917577]  // Northeast coordinates (top-right)
+    ]
+});
             const geocoder = new MapboxGeocoder({
                 accessToken: mapboxgl.accessToken,
                 bbox: [-74.2596399, 40.477399, -73.700292, 40.917577],
