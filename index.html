@@ -313,12 +313,14 @@
                     box.style.backgroundColor = colors[category];
                     box.innerHTML = `<span>${category}</span><span class="category-count" id="${category.replace(/ /g, '-').toLowerCase()}-count">${counts[category] || 0}</span>`;
 
-                    // Add triangle indicators for above/below average
-                    const average = averageSummonses[category];
-                    if (counts[category] > average) {
-                        box.innerHTML += '<div class="triangle-up"></div>'; // Above average, red triangle
-                    } else if (counts[category] < average) {
-                        box.innerHTML += '<div class="triangle-down"></div>'; // Below average, green triangle
+                    // Add triangle indicators for above/below average only if a precinct is provided
+                    if (precinct) {
+                        const average = averageSummonses[category];
+                        if (counts[category] > average) {
+                            box.innerHTML += '<div class="triangle-up"></div>'; // Above average, red triangle
+                        } else if (counts[category] < average) {
+                            box.innerHTML += '<div class="triangle-down"></div>'; // Below average, green triangle
+                        }
                     }
 
                     box.addEventListener('click', () => filterSummonsLayer(category));
@@ -520,6 +522,10 @@
 
                 calculateAverageSummonses(currentYear);
                 populateSidebar(counts, precinct);
+
+                // Hide the year slider
+                document.getElementById('yearSlider').style.display = 'none';
+                document.getElementById('yearLabel').style.display = 'none';
             }
 
             geocoder.on('result', async (e) => {
@@ -575,6 +581,10 @@
                 // Clear the precinct message
                 const precinctMessage = document.getElementById('precinctInfo');
                 precinctMessage.innerText = 'Categories';
+
+                // Show the year slider
+                document.getElementById('yearSlider').style.display = 'block';
+                document.getElementById('yearLabel').style.display = 'flex';
             });
 
             document.getElementById('yearSlider').addEventListener('input', (e) => {
