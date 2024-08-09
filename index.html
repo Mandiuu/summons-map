@@ -218,7 +218,7 @@
             top: 0;
             right: 0;
             height: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background: none;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
@@ -245,6 +245,14 @@
             padding: 0;
             font-size: 1em;
             color: #666;
+        }
+
+        .chapter-box {
+            padding: 20px;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
         }
 
         #header, #footer {
@@ -820,7 +828,7 @@
                 }
 
                 container.setAttribute('id', record.id);
-                container.classList.add('step');
+                container.classList.add('step', 'chapter-box'); // Add chapter-box class
                 if (idx === 0) {
                     container.classList.add('active');
                 }
