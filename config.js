@@ -8,7 +8,7 @@ var config = {
     use3dTerrain: false,
     auto: false,
     title: 'The summons in NYC',
-    subtitle: 'How the quality of life enforcement has changed in the city', 
+    subtitle: 'How the quality of life enforcement has changed in the city',
     byline: 'By Carla Mandiola',
     footer: 'Source: source citations, etc. <br> Created using <a href="https://github.com/mapbox/storytelling" target="_blank">Mapbox Storytelling</a> template.',
     chapters: [
@@ -65,6 +65,6 @@ var config = {
             callback: '',
             onChapterEnter: [],
             onChapterExit: []
-        },
+        }
     ]
 };

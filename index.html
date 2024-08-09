@@ -12,6 +12,8 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+    <script src="https://unpkg.com/intersection-observer@0.12.0/intersection-observer.js"></script>
+    <script src="https://unpkg.com/scrollama"></script>
     <style>
         html, body {
             height: 100%;
@@ -31,7 +33,7 @@
             overflow-y: auto;
             flex-shrink: 0;
             z-index: 1;
-            display: flex;
+            display: none; /* Hide the sidebar initially */
             flex-direction: column;
             justify-content: space-between;
         }
@@ -44,7 +46,7 @@
 
         .category-box {
             width: calc(40% - 10px);
-            height: 80px;
+            height: 110px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -62,11 +64,12 @@
 
         .category-box span:first-child {
             font-weight: bold;
-            font-size: 16px;
+            font-size: 13px;
         }
 
         .category-box span:nth-child(2) {
-            font-size: 14px;
+            font-weight: bold;
+            font-size: 21px;
         }
 
         .triangle-up {
@@ -206,6 +209,51 @@
                 font-size: 10px;
             }
         }
+
+        #story {
+            width: 300px;
+            overflow-y: auto;
+            z-index: 2;
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .step {
+            margin-bottom: 200px;
+            opacity: 0.3;
+            transition: opacity 0.5s;
+        }
+
+        .step.active {
+            opacity: 1;
+        }
+
+        .step h3 {
+            margin: 0;
+            padding: 0;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .step p {
+            margin: 10px 0 0;
+            padding: 0;
+            font-size: 1em;
+            color: #666;
+        }
+
+        #header, #footer {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
@@ -229,16 +277,102 @@
         <div class="sidebar-footer">By Carla Mandiola</div>
     </div>
     <div id="map"></div>
+    <div id="story"></div>
 
     <script>
+        var config = {
+            style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph',
+            accessToken: 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHo2M2x6ZDEybzhoMmpvaWEzemg2bzhyIn0.EorVdgNT0Uj_7ncSDV8NGQ',
+            showMarkers: true,
+            markerColor: '#3FB1CE',
+            inset: true,
+            theme: 'dark',
+            use3dTerrain: false,
+            auto: false,
+            title: 'The summons in NYC',
+            subtitle: 'How the quality of life enforcement has changed in the city',
+            byline: 'By Carla Mandiola',
+            footer: 'Source: source citations, etc. <br> Created using <a href="https://github.com/mapbox/storytelling" target="_blank">Mapbox Storytelling</a> template.',
+            chapters: [
+                {
+                    id: 'chapter1',
+                    alignment: 'left',
+                    hidden: false,
+                    title: 'The place with more summonses in NYC in 2018',
+                    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+                    location: {
+                        center: [-73.99495, 40.75388],
+                        zoom: 14.00,
+                        pitch: 62.00,
+                        bearing: 25.73
+                    },
+                    mapAnimation: 'flyTo',
+                    rotateAnimation: false,
+                    onChapterEnter: [],
+                    onChapterExit: []
+                },
+                {
+                    id: 'chapter2',
+                    alignment: 'right',
+                    hidden: false,
+                    title: 'Five years later, The Bronx became the place with more summonses in NYC',
+                    description: 'Copy these sections to add to your story.',
+                    location: {
+                        center: [-73.92529, 40.81037],
+                        zoom: 14.00,
+                        pitch: 51.00,
+                        bearing: 25.73
+                    },
+                    mapAnimation: 'flyTo',
+                    rotateAnimation: false,
+                    onChapterEnter: [],
+                    onChapterExit: []
+                },
+                {
+                    id: 'chapter3',
+                    alignment: 'left',
+                    hidden: false,
+                    title: 'Alcohol and drugs summonses are the most common reasons for summonses in the city',
+                    description: 'And the place with more tickets is located in Queens',
+                    location: {
+                        center: [-73.87012, 40.74513],
+                        zoom: 14.00,
+                        pitch: 45.00,
+                        bearing: 25.73
+                    },
+                    mapAnimation: 'flyTo',
+                    rotateAnimation: false,
+                    onChapterEnter: [],
+                    onChapterExit: []
+                },
+                {
+                    id: 'chapter4',
+                    alignment: 'full',
+                    hidden: false,
+                    title: 'Time to search for address',
+                    description: 'Use the sidebar to look for areas in NYC and see how the city has changed over the years',
+                    location: {
+                        center: [-74.0060, 40.7128],
+                        zoom: 10.00,
+                        pitch: 0.00,
+                        bearing: 0.00
+                    },
+                    mapAnimation: 'flyTo',
+                    rotateAnimation: false,
+                    onChapterEnter: [],
+                    onChapterExit: []
+                }
+            ]
+        };
+
         document.addEventListener('DOMContentLoaded', (event) => {
-            mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHo2M2x6ZDEybzhoMmpvaWEzemg2bzhyIn0.EorVdgNT0Uj_7ncSDV8NGQ';
+            mapboxgl.accessToken = config.accessToken;
 
             const map = new mapboxgl.Map({
                 container: 'map',
                 center: [-74.0060, 40.7128],
                 zoom: 10,
-                style: 'mapbox://styles/carlamandiola/clyw6k9fk00ia01nxco4d4cph',
+                style: config.style,
                 maxBounds: [
                     [-74.259090, 40.477399], // Southwest coordinates
                     [-73.700272, 40.917577]  // Northeast coordinates
@@ -543,6 +677,23 @@
             });
 
             map.on('load', () => {
+                console.log('Layers in the map style:', map.getStyle().layers);
+                map.getStyle().layers.forEach(layer => {
+                    console.log(layer.id);
+                });
+
+                // Add custom layer for demonstration purposes
+                map.addLayer({
+                    'id': 'summonses', // Custom layer ID
+                    'type': 'circle',
+                    'source': 'summonses',
+                    'paint': {
+                        'circle-radius': 5,
+                        'circle-color': '#f00',
+                        'circle-opacity': 0.6
+                    }
+                });
+
                 populateSidebar();
 
                 Promise.all([
@@ -592,6 +743,181 @@
                 console.log('Year changed:', currentYear); // Debugging
                 updateMap();
             });
+
+            // Storytelling integration
+            const alignments = {
+                'left': 'lefty',
+                'center': 'centered',
+                'right': 'righty',
+                'full': 'fully'
+            };
+
+            const story = document.getElementById('story');
+            const features = document.createElement('div');
+            features.setAttribute('id', 'features');
+
+            const header = document.createElement('div');
+
+            if (config.title) {
+                const titleText = document.createElement('h1');
+                titleText.innerText = config.title;
+                header.appendChild(titleText);
+            }
+
+            if (config.subtitle) {
+                const subtitleText = document.createElement('h2');
+                subtitleText.innerText = config.subtitle;
+                header.appendChild(subtitleText);
+            }
+
+            if (config.byline) {
+                const bylineText = document.createElement('p');
+                bylineText.innerText = config.byline;
+                header.appendChild(bylineText);
+            }
+
+            if (header.innerText.length > 0) {
+                header.classList.add(config.theme);
+                header.setAttribute('id', 'header');
+                story.appendChild(header);
+            }
+
+            config.chapters.forEach((record, idx) => {
+                const container = document.createElement('div');
+                const chapter = document.createElement('div');
+
+                if (record.title) {
+                    const title = document.createElement('h3');
+                    title.innerText = record.title;
+                    chapter.appendChild(title);
+                }
+
+                if (record.image) {
+                    const image = new Image();
+                    image.src = record.image;
+                    chapter.appendChild(image);
+                }
+
+                if (record.description) {
+                    const storyText = document.createElement('p');
+                    storyText.innerHTML = record.description;
+                    chapter.appendChild(storyText);
+                }
+
+                container.setAttribute('id', record.id);
+                container.classList.add('step');
+                if (idx === 0) {
+                    container.classList.add('active');
+                }
+
+                chapter.classList.add(config.theme);
+                container.appendChild(chapter);
+                container.classList.add(alignments[record.alignment] || 'centered');  // Use the alignments object here
+                if (record.hidden) {
+                    container.classList.add('hidden');
+                }
+                features.appendChild(container);
+            });
+
+            story.appendChild(features);
+
+            const footer = document.createElement('div');
+
+            if (config.footer) {
+                const footerText = document.createElement('p');
+                footerText.innerHTML = config.footer;
+                footer.appendChild(footerText);
+            }
+
+            if (footer.innerText.length > 0) {
+                footer.classList.add(config.theme);
+                footer.setAttribute('id', 'footer');
+                story.appendChild(footer);
+            }
+
+            const transformRequest = (url) => {
+                const hasQuery = url.indexOf("?") !== -1;
+                const suffix = hasQuery ? "&pluginName=scrollytellingV2" : "?pluginName=scrollytellingV2";
+                return {
+                    url: url + suffix
+                }
+            }
+
+            if (config.showMarkers) {
+                const marker = new mapboxgl.Marker({ color: config.markerColor });
+                marker.setLngLat(config.chapters[0].location.center).addTo(map);
+            }
+
+            const scroller = scrollama();
+
+            map.on("load", function() {
+                if (config.use3dTerrain) {
+                    map.addSource('mapbox-dem', {
+                        'type': 'raster-dem',
+                        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                        'tileSize': 512,
+                        'maxzoom': 14
+                    });
+                    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+                    map.addLayer({
+                        'id': 'sky',
+                        'type': 'sky',
+                        'paint': {
+                            'sky-type': 'atmosphere',
+                            'sky-atmosphere-sun': [0.0, 0.0],
+                            'sky-atmosphere-sun-intensity': 15
+                        }
+                    });
+                };
+
+                scroller
+                    .setup({
+                        step: '.step',
+                        offset: 0.5,
+                        progress: true,
+                        threshold: 0.5
+                    })
+                    .onStepEnter(response => {
+                        const chapter = config.chapters.find(chap => chap.id === response.element.id);
+                        response.element.classList.add('active');
+                        map[chapter.mapAnimation || 'flyTo'](chapter.location);
+
+                        if (chapter.onChapterEnter) {
+                            chapter.onChapterEnter.forEach(function(layer) {
+                                if (layer.layer && map.getLayer(layer.layer)) {
+                                    map.setLayoutProperty(layer.layer, 'visibility', 'visible');
+                                    map.setPaintProperty(layer.layer, 'fill-opacity', layer.opacity);
+                                }
+                            });
+                        }
+
+                        if (response.index === config.chapters.length - 1) {
+                            document.getElementById('sidebar').style.display = 'flex';
+                        }
+                    })
+                    .onStepExit(response => {
+                        const chapter = config.chapters.find(chap => chap.id === response.element.id);
+                        response.element.classList.remove('active');
+
+                        if (chapter.onChapterExit) {
+                            chapter.onChapterExit.forEach(function(layer) {
+                                if (layer.layer && map.getLayer(layer.layer)) {
+                                    map.setPaintProperty(layer.layer, 'fill-opacity', layer.opacity);
+                                }
+                            });
+                        }
+
+                        if (response.index === config.chapters.length - 1 && response.direction === 'down') {
+                            document.getElementById('story').style.display = 'none';
+                        }
+                    });
+
+                if (config.auto) {
+                    document.querySelectorAll('[data-scrollama-index="0"]')[0].scrollIntoView();
+                }
+            });
+
+            window.addEventListener('resize', scroller.resize);
         });
     </script>
 </body>
