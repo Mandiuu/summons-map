@@ -254,6 +254,20 @@
             border-radius: 8px;
             margin-bottom: 10px;
         }
+
+        #toggleStoryButton {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 3;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3FB1CE;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -278,6 +292,7 @@
     </div>
     <div id="map"></div>
     <div id="story"></div>
+    <button id="toggleStoryButton">Hide Story</button>
 
     <script>
         var config = {
@@ -909,6 +924,7 @@
 
                         if (response.index === config.chapters.length - 1 && response.direction === 'down') {
                             document.getElementById('story').style.display = 'none';
+                            document.getElementById('toggleStoryButton').innerText = 'Show Story';
                         }
                     });
 
@@ -918,6 +934,18 @@
             });
 
             window.addEventListener('resize', scroller.resize);
+
+            document.getElementById('toggleStoryButton').addEventListener('click', () => {
+                const storyDiv = document.getElementById('story');
+                const toggleButton = document.getElementById('toggleStoryButton');
+                if (storyDiv.style.display === 'none') {
+                    storyDiv.style.display = 'block';
+                    toggleButton.innerText = 'Hide Story';
+                } else {
+                    storyDiv.style.display = 'none';
+                    toggleButton.innerText = 'Show Story';
+                }
+            });
         });
     </script>
 </body>
