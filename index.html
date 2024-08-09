@@ -6,6 +6,7 @@
     <title>Look at NYC Summons</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="reset.css">
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
@@ -19,21 +20,22 @@
             height: 100%;
             margin: 0;
             padding: 0;
-            font-family: 'Lato', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             font-size: 20px;
             line-height: 1.4;
             display: flex;
         }
-
+        
         #sidebar {
             width: 300px;
+            font-family: 'Montserrat', sans-serif;
             background: #333;
             color: white;
             padding: 10px;
             overflow-y: auto;
             flex-shrink: 0;
             z-index: 1;
-            display: none; /* Hide the sidebar initially */
+            display: none; 
             flex-direction: column;
             justify-content: space-between;
         }
@@ -186,6 +188,36 @@
             padding-left: 25px;
         }
 
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .header, .footer {
+            text-align: center;
+            padding: 10px 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 1.2em;
+            color: gray;
+        }
+        .byline {
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: gray;
+        }
+
         @media (max-width: 768px) {
             #sidebar {
                 width: 100px;
@@ -321,8 +353,8 @@
                     id: 'chapter1',
                     alignment: 'left',
                     hidden: false,
-                    title: 'The place with more summonses in NYC in 2018',
-                    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+                    title: 'This was the place with more summonses in NYC in 2018',
+                    description: 'People went wild im Times Square, Grand Central Terminal, Penn Station, Madison Square Garden, and Koreatown.',
                     location: {
                         center: [-73.99495, 40.75388],
                         zoom: 14.00,
@@ -338,8 +370,8 @@
                     id: 'chapter2',
                     alignment: 'right',
                     hidden: false,
-                    title: 'Five years later, The Bronx became the place with more summonses in NYC',
-                    description: 'Copy these sections to add to your story.',
+                    title: 'Five years later, the south of the Bronx became the place with more summonses in NYC',
+                    description: 'In 2023 the precinct that serves Port Morris, Mott Haven, and Melrose had 4.989 summonses',
                     location: {
                         center: [-73.92529, 40.81037],
                         zoom: 14.00,
@@ -355,8 +387,8 @@
                     id: 'chapter3',
                     alignment: 'left',
                     hidden: false,
-                    title: 'Alcohol and drugs summonses are the most common reasons for summonses in the city',
-                    description: 'And the place with more tickets is located in Queens',
+                    title: 'Alcohol and drugs are the most common reasons for summonses in the city',
+                    description: 'And the place with more tickets is located in Corona, Queens',
                     location: {
                         center: [-73.87012, 40.74513],
                         zoom: 14.00,
@@ -372,7 +404,7 @@
                     id: 'chapter4',
                     alignment: 'full',
                     hidden: false,
-                    title: 'Time to search for address',
+                    title: 'Time to search for addresses',
                     description: 'Use the sidebar to look for areas in NYC and see how the city has changed over the years',
                     location: {
                         center: [-74.0060, 40.7128],
@@ -401,6 +433,8 @@
                     [-73.700272, 40.917577]  // Northeast coordinates
                 ]
             });
+
+            
 
             const geocoder = new MapboxGeocoder({
                 accessToken: mapboxgl.accessToken,
