@@ -244,22 +244,22 @@
 
         @media (max-width: 768px) {
             #sidebar {
-                width: 100%;
+                width: 150px;
                 height: auto;
                 font-size: 16px;
                 position: absolute;
-                bottom: 0;
-                left: 0;
+                top: 0;
+                right: 0;
                 z-index: 2;
                 display: flex;
-                flex-direction: row;
+                flex-direction: column;
                 flex-wrap: wrap;
                 justify-content: space-around;
             }
 
             .category-box {
                 font-size: 12px;
-                width: calc(33% - 10px);
+                width: calc(100% - 20px);
                 height: 80px;
             }
 
@@ -277,11 +277,12 @@
 
             #map {
                 width: 100%;
-                height: calc(100% - 200px); /* Adjust this value to fit the sidebar */
+                height: 100%;
             }
 
             #toggleStoryButton {
-                bottom: 80px; /* Adjust to fit above the sidebar */
+                bottom: 60px; /* Adjust to fit above the sidebar */
+                right: 160px; /* Adjust to fit next to the sidebar */
             }
         }
 
@@ -337,7 +338,7 @@
             border-radius: 8px;
             margin-bottom: 10px;
         }
-        
+
         #toggleStoryButton {
             position: absolute;
             bottom: 20px;
@@ -1035,3 +1036,4 @@
     </script>
 </body>
 </html>
+
