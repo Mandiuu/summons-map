@@ -74,8 +74,8 @@
             font-size: 13px;
             margin-bottom: auto; 
             white-space: normal; 
-    word-break: break-word; 
-    text-align: center;
+            word-break: break-word; 
+            text-align: center;
         }
 
         .category-box span:nth-child(2) {
@@ -84,12 +84,11 @@
             margin-bottom: auto; 
         }
 
-
-.category-count {
-    font-weight: bold;
-    font-size: 21px;
-    margin-bottom: auto; /* This will push the element to the top */
-}
+        .category-count {
+            font-weight: bold;
+            font-size: 21px;
+            margin-bottom: auto; /* This will push the element to the top */
+        }
 
         .triangle-up {
             width: 0;
@@ -235,6 +234,15 @@
             color: gray;
         }
 
+        .average-label {
+    font-size: 10px;
+    color: white;
+    position: absolute;
+    bottom: 5px;
+    left: 30px;
+    
+}
+
         @media (max-width: 768px) {
             #sidebar {
                 width: 100px;
@@ -311,6 +319,7 @@
             border-radius: 8px;
             margin-bottom: 10px;
         }
+        
 
         #toggleStoryButton {
             position: absolute;
@@ -463,14 +472,14 @@
                 'DISORDERLY BEHAVIOR': '#f6b93b',
                 'BIKE': '#60a3bc',
                 'VEHICLE': '#4a69bd',
-                'DISOBEY BUSINESS': '#A3CB38',
+                'DISOBEY BUSINESS': '#4DAA57',
                 'NOISE': '#cf6a87',
-                'PROPERTY': '#574b90',
+                'PROPERTY': '#754668',
                 'ALCOHOL/DRUGS': '#e55039',
                 'ALL': '#95afc0'
             };
 
-            const categories = ['DISORDERLY BEHAVIOR', 'BIKE', 'VEHICLE', 'DISOBEY BUSINESS', 'NOISE', 'PROPERTY', 'ALCOHOL/DRUGS'];
+            const categories = ['DISORDERLY BEHAVIOR', 'ALCOHOL/DRUGS', 'DISOBEY BUSINESS', 'VEHICLE', 'BIKE', 'NOISE', 'PROPERTY', ];
             const categoryMap = {
                 'DISORDERLY BEHAVIOR': 'DISORDERLY BEHAVIOR',
                 'BIKE': 'BIKE',
@@ -517,17 +526,16 @@
                     const box = document.createElement('div');
                     box.className = 'category-box';
                     box.style.backgroundColor = colors[category];
-                    box.innerHTML = `<span>${category}</span><span class="category-count" id="${category.replace(/ /g, '-').toLowerCase()}-count">${counts[category] || 0}</span>`;
+                    box.innerHTML = `<span>${category === 'ALCOHOL/DRUGS' ? 'ALCOHOL / DRUGS' : category}</span><span class="category-count" id="${category.replace(/ /g, '-').toLowerCase()}-count">${counts[category] || 0}</span>`;
 
-                    // Add triangle indicators for above/below average only if a precinct is provided
                     if (precinct) {
-                        const average = averageSummonses[category];
-                        if (counts[category] > average) {
-                            box.innerHTML += '<div class="triangle-up"></div>'; // Above average, red triangle
-                        } else if (counts[category] < average) {
-                            box.innerHTML += '<div class="triangle-down"></div>'; // Below average, green triangle
-                        }
-                    }
+    const average = averageSummonses[category];
+    if (counts[category] > average) {
+        box.innerHTML += '<div class="triangle-up"></div><span class="average-label">above average</span>'; // Above average, red triangle
+    } else if (counts[category] < average) {
+        box.innerHTML += '<div class="triangle-down"></div><span class="average-label">below average</span>'; // Below average, green triangle
+    }
+}
 
                     box.addEventListener('click', () => filterSummonsLayer(category));
                     categoryList.appendChild(box);
