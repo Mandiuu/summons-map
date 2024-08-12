@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+       <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Look at NYC Summons</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Teachers:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="reset.css">
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
@@ -40,9 +41,13 @@
             overflow-y: auto;
             flex-shrink: 0;
             z-index: 1;
-            display: none;
+            display: none; /* Hide by default */
             flex-direction: column;
             justify-content: space-between;
+        }
+
+        .sidebar-visible {
+            display: flex !important; /* Show when this class is added */
         }
 
         #categoryList {
@@ -52,37 +57,37 @@
         }
 
         .category-box {
-            width: calc(40% - 10px);
-            height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            margin: 10px;
-            color: white;
-            text-align: center;
-            border: none;
-            cursor: pointer;
-            flex-direction: column;
-            box-sizing: border-box;
-            font-size: 12px;
-            position: relative;
-        }
+    width: calc(40% - 10px);
+    height: 100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin: 10px;
+    color: white;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    flex-direction: column;
+    box-sizing: border-box;
+    font-size: 12px;
+    position: relative;
+}
 
-        .category-box span:first-child {
-            font-weight: bold;
-            font-size: 13px;
-            margin-bottom: auto; 
-            white-space: normal; 
-            word-break: break-word; 
-            text-align: center;
-        }
+.category-box span:first-child {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: auto;
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
+}
 
-        .category-box span:nth-child(2) {
-            font-weight: bold;
-            font-size: 21px;
-            margin-bottom: auto; 
-        }
+.category-box span:nth-child(2) {
+    font-weight: bold;
+    font-size: 25px;
+    margin-top: -2px; /* Add some space above the number */
+}
 
         .category-count {
             font-weight: bold;
@@ -213,7 +218,7 @@
         .header h1 {
             margin: 0;
             font-size: 2em;
-            font-family: 'Montserrat', sans-serif;
+            font-family: "Teachers", sans-serif;
         }
 
         .header h2 {
@@ -239,7 +244,7 @@
             color: white;
             position: absolute;
             bottom: 5px;
-            left: 15px; /* Adjust this value as needed to move the text left */
+            left: 30px; /* Adjust this value as needed to move the text left */
         }
 
         @media (max-width: 768px) {
@@ -251,7 +256,7 @@
                 top: 0;
                 right: 0;
                 z-index: 2;
-                display: flex;
+                display: none; /* Hide by default on mobile */
                 flex-direction: column;
                 flex-wrap: wrap;
                 justify-content: space-around;
@@ -356,6 +361,9 @@
 </head>
 
 <body>
+    <div class="header">
+        <h1>The summons in NYC</h1>
+    </div>
     <div id="sidebar">
         <div>
             <div class="sidebar-header">NYC Summons</div>
@@ -487,17 +495,17 @@
             document.getElementById('search-box-container').appendChild(geocoder.onAdd(map));
 
             const colors = {
-                'DISORDERLY BEHAVIOR': '#f6b93b',
+                'DISORDERLY BEHAVIOR': '#f9ca24',
                 'BIKE': '#60a3bc',
                 'VEHICLE': '#4a69bd',
-                'DISOBEY BUSINESS': '#A3CB38',
+                'DISOBEY BUSINESS': '#6ab04c',
                 'NOISE': '#cf6a87',
                 'PROPERTY': '#574b90',
                 'ALCOHOL/DRUGS': '#e55039',
                 'ALL': '#95afc0'
             };
 
-            const categories = ['DISORDERLY BEHAVIOR', 'BIKE', 'VEHICLE', 'DISOBEY BUSINESS', 'NOISE', 'PROPERTY', 'ALCOHOL/DRUGS'];
+            const categories = ['DISORDERLY BEHAVIOR', 'DISOBEY BUSINESS', 'ALCOHOL/DRUGS', 'BIKE', 'VEHICLE','NOISE', 'PROPERTY'];
             const categoryMap = {
                 'DISORDERLY BEHAVIOR': 'DISORDERLY BEHAVIOR',
                 'BIKE': 'BIKE',
@@ -544,7 +552,7 @@
                     const box = document.createElement('div');
                     box.className = 'category-box';
                     box.style.backgroundColor = colors[category];
-                    box.innerHTML = `<span>${category === 'ALCOHOL/DRUGS' ? 'ALCOHOL & DRUGS' : category}</span><span class="category-count" id="${category.replace(/ /g, '-').toLowerCase()}-count">${counts[category] || 0}</span>`;
+                    box.innerHTML = `<span>${category === 'ALCOHOL/DRUGS' ? 'ALCOHOL / DRUGS' : category}</span><span class="category-count" id="${category.replace(/ /g, '-').toLowerCase()}-count">${counts[category] || 0}</span>`;
 
                     // Add triangle indicators for above/below average only if a precinct is provided
                     if (precinct) {
@@ -615,8 +623,7 @@
                 console.log('Adding summons layer with data:', summonsGeoJson);
                 if (map.getSource('summonses')) {
                     map.getSource('summonses').setData(summonsGeoJson);
-                } else {
-                    map.addSource('summonses', {
+                } else {                    map.addSource('summonses', {
                         type: 'geojson',
                         data: summonsGeoJson
                     });
@@ -993,7 +1000,7 @@
                         }
 
                         if (response.index === config.chapters.length - 1) {
-                            document.getElementById('sidebar').style.display = 'flex';
+                            document.getElementById('sidebar').classList.add('sidebar-visible');
                         }
                     })
                     .onStepExit(response => {
@@ -1037,3 +1044,4 @@
 </body>
 </html>
 
+                   
