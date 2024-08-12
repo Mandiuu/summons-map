@@ -18,43 +18,49 @@
     <script src="https://unpkg.com/scrollama"></script>
     <style>
         html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; 
-            font-family: 'Montserrat', sans-serif;
-            font-size: 20px;
-            line-height: 1.4;
-        }
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; 
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    line-height: 1.4;
+}
 
-        body {
-            display: flex;
-            flex-direction: column;
-        }
+body {
+    display: flex;
+    flex-direction: column;
+}
 
-        #sidebar {
-            width: 300px;
-            font-family: 'Montserrat', sans-serif;
-            background: #333;
-            color: white;
-            padding: 10px;
-            overflow-y: auto;
-            flex-shrink: 0;
-            z-index: 1;
-            display: none; /* Hide by default */
-            flex-direction: column;
-            justify-content: space-between;
-        }
+#sidebar {
+    position: fixed; /* Ensure the sidebar is fixed on the page */
+    top: 0; /* Position it at the top */
+    bottom: 0; /* Extend it to the bottom */
+    width: 300px;
+    font-family: 'Montserrat', sans-serif;
+    background: #333;
+    color: white;
+    padding: 10px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    z-index: 1;
+    display: none; 
+    flex-direction: column;
+    justify-content: space-between;
+}
 
-        .sidebar-visible {
-            display: flex !important; /* Show when this class is added */
-        }
+.sidebar-visible {
+    display: flex !important; 
+}
 
-        #categoryList {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+#categoryList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+
+
 
         .category-box {
     width: calc(40% - 10px);
