@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-       <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Look at NYC Summons</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
@@ -18,82 +18,79 @@
     <script src="https://unpkg.com/scrollama"></script>
     <style>
         html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden; 
-    font-family: 'Montserrat', sans-serif;
-    font-size: 20px;
-    line-height: 1.4;
-}
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            line-height: 1.4;
+        }
 
-body {
-    display: flex;
-    flex-direction: column;
-}
+        body {
+            display: flex;
+            flex-direction: column;
+        }
 
-#sidebar {
-    position: fixed; /* Ensure the sidebar is fixed on the page */
-    top: 0; /* Position it at the top */
-    bottom: 0; /* Extend it to the bottom */
-    width: 300px;
-    font-family: 'Montserrat', sans-serif;
-    background: #333;
-    color: white;
-    padding: 10px;
-    overflow-y: auto;
-    flex-shrink: 0;
-    z-index: 1;
-    display: none; 
-    flex-direction: column;
-    justify-content: space-between;
-}
+        #sidebar {
+            position: fixed; /* Ensure the sidebar is fixed on the page */
+            top: 0; /* Position it at the top */
+            bottom: 0; /* Extend it to the bottom */
+            width: 300px;
+            font-family: 'Montserrat', sans-serif;
+            background: #333;
+            color: white;
+            padding: 10px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            z-index: 1;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-.sidebar-visible {
-    display: flex !important; 
-}
+        .sidebar-visible {
+            display: flex !important;
+        }
 
-#categoryList {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-
-
+        #categoryList {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
 
         .category-box {
-    width: calc(40% - 10px);
-    height: 100px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    margin: 10px;
-    color: white;
-    text-align: center;
-    border: none;
-    cursor: pointer;
-    flex-direction: column;
-    box-sizing: border-box;
-    font-size: 12px;
-    position: relative;
-}
+            width: calc(40% - 10px);
+            height: 100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 10px;
+            color: white;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            flex-direction: column;
+            box-sizing: border-box;
+            font-size: 12px;
+            position: relative;
+        }
 
-.category-box span:first-child {
-    font-weight: bold;
-    font-size: 13px;
-    margin-bottom: auto;
-    white-space: normal;
-    word-break: break-word;
-    text-align: center;
-}
+        .category-box span:first-child {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: auto;
+            white-space: normal;
+            word-break: break-word;
+            text-align: center;
+        }
 
-.category-box span:nth-child(2) {
-    font-weight: bold;
-    font-size: 25px;
-    margin-top: -2px; /* Add some space above the number */
-}
+        .category-box span:nth-child(2) {
+            font-weight: bold;
+            font-size: 25px;
+            margin-top: -2px; /* Add some space above the number */
+        }
 
         .category-count {
             font-weight: bold;
@@ -130,7 +127,7 @@ body {
         #map {
             flex-grow: 1;
             height: 100%;
-            width: 100vw; 
+            width: 100vw;
         }
 
         .mapboxgl-popup {
@@ -224,7 +221,7 @@ body {
         .header h1 {
             margin: 0;
             font-size: 2em;
-            font-family: "Teachers", sans-serif;
+            font-family: 'Teachers', sans-serif;
         }
 
         .header h2 {
@@ -368,7 +365,7 @@ body {
 
 <body>
     <div class="header">
-        <h1>The summons in NYC</h1>
+        <h1 style="font-family: 'Teachers', sans-serif;">The summons in NYC</h1>
     </div>
     <div id="sidebar">
         <div>
@@ -412,7 +409,7 @@ body {
                     alignment: 'left',
                     hidden: false,
                     title: 'This was the place with more summonses in NYC in 2018',
-                    description: 'People went wild im Times Square, Grand Central Terminal, Penn Station, Madison Square Garden, and Koreatown.',
+                    description: 'People went wild in Times Square, Grand Central Terminal, Penn Station, Madison Square Garden, and Koreatown.',
                     location: {
                         center: [-73.99495, 40.75388],
                         zoom: 14.00,
@@ -429,7 +426,7 @@ body {
                     alignment: 'right',
                     hidden: false,
                     title: 'Five years later, the south of the Bronx became the place with more summonses in NYC',
-                    description: 'In 2023 the precinct that serves Port Morris, Mott Haven, and Melrose had 4.989 summonses',
+                    description: 'In 2023 the precinct that serves Port Morris, Mott Haven, and Melrose had 4,989 summonses',
                     location: {
                         center: [-73.92529, 40.81037],
                         zoom: 14.00,
@@ -627,13 +624,16 @@ body {
 
             function addSummonsLayer(summonsGeoJson) {
                 console.log('Adding summons layer with data:', summonsGeoJson);
-                if (map.getSource('summonses')) {
-                    map.getSource('summonses').setData(summonsGeoJson);
-                } else {                    map.addSource('summonses', {
+                if (!map.getSource('summonses')) {
+                    map.addSource('summonses', {
                         type: 'geojson',
                         data: summonsGeoJson
                     });
+                } else {
+                    map.getSource('summonses').setData(summonsGeoJson);
+                }
 
+                if (!map.getLayer('summonses')) {
                     map.addLayer({
                         id: 'summonses',
                         type: 'circle',
@@ -792,18 +792,6 @@ body {
                 console.log('Layers in the map style:', map.getStyle().layers);
                 map.getStyle().layers.forEach(layer => {
                     console.log(layer.id);
-                });
-
-                // Add custom layer for demonstration purposes
-                map.addLayer({
-                    'id': 'summonses', // Custom layer ID
-                    'type': 'circle',
-                    'source': 'summonses',
-                    'paint': {
-                        'circle-radius': 5,
-                        'circle-color': '#f00',
-                        'circle-opacity': 0.6
-                    }
                 });
 
                 populateSidebar();
@@ -1049,5 +1037,3 @@ body {
     </script>
 </body>
 </html>
-
-                   
