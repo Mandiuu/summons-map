@@ -238,8 +238,13 @@
 
         .footer {
             margin-top: 50px;
-            font-size: 0.9em;
+            font-size: 0.1em; /* Adjusted */
             color: gray;
+        }
+
+        .source-footer {
+            font-size: 0.2em; /* Adjust the size as needed */
+            text-align: center; /* Ensure the text is centered */
         }
 
         .average-label {
@@ -498,12 +503,12 @@
             document.getElementById('search-box-container').appendChild(geocoder.onAdd(map));
 
             const colors = {
-                'DISORDERLY BEHAVIOR': '#f9ca24',
+                'DISORDERLY BEHAVIOR': '#FFAE03',
                 'BIKE': '#60a3bc',
                 'VEHICLE': '#4a69bd',
                 'DISOBEY BUSINESS': '#6ab04c',
                 'NOISE': '#cf6a87',
-                'PROPERTY': '#574b90',
+                'PROPERTY': '#861657',
                 'ALCOHOL/DRUGS': '#e55039',
                 'ALL': '#95afc0'
             };
