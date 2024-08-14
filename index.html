@@ -250,6 +250,10 @@
             margin-top: 30px;
         }
 
+        .mapboxgl-ctrl-group {
+        font-size: 14px; /* Adjust the font size */
+    }
+
         .mapboxgl-ctrl-geocoder--input {
             width: 100%;
             padding: 10px;
@@ -392,8 +396,8 @@
                 display: block;
                 position: static;
                 width: 100%;
-                padding: 15px;
-                font-size: 18px;
+                padding: 8px 16px; 
+                font-size: 14px;
             }
         }
 
@@ -576,7 +580,7 @@
                 <div class="sidebar-header2" id="precinctInfo">Categories</div>
                 <div id="categoryList"></div>
             </div>
-            <div class="sidebar-footer">By Carla Mandiola</div>
+            <div class="sidebar-footer">The map shows the summonses with the correct coordinates from the NYPD crime data</div>
         </div>
     </div>
 
@@ -594,7 +598,6 @@
             auto: false,
             title: 'The summons in NYC',
             subtitle: 'How the quality of life enforcement has changed in the city',
-            byline: 'By Carla Mandiola',
             footer: 'Source: source citations, etc. <br> Created using <a href="https://github.com/mapbox/storytelling" target="_blank">Mapbox Storytelling</a> template.',
             chapters: [
                 {
