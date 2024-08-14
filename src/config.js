@@ -3,12 +3,15 @@ var config = {
     accessToken: 'pk.eyJ1IjoiY2FybGFtYW5kaW9sYSIsImEiOiJjbHo2M2x6ZDEybzhoMmpvaWEzemg2bzhyIn0.EorVdgNT0Uj_7ncSDV8NGQ',
     showMarkers: true,
     markerColor: '#3FB1CE',
+    //projection: 'equirectangular',
+    //Read more about available projections here
+    //https://docs.mapbox.com/mapbox-gl-js/example/projections/
     inset: true,
     theme: 'dark',
-    use3dTerrain: false,
+    use3dTerrain: false, //set true for enabling 3D maps.
     auto: false,
     title: 'The summons in NYC',
-    subtitle: 'How the quality of life enforcement has changed in the city',
+    subtitle: 'How the quality of life enforcement has changed in the city', 
     byline: 'By Carla Mandiola',
     footer: 'Source: source citations, etc. <br> Created using <a href="https://github.com/mapbox/storytelling" target="_blank">Mapbox Storytelling</a> template.',
     chapters: [
@@ -28,8 +31,19 @@ var config = {
             mapAnimation: 'flyTo',
             rotateAnimation: false,
             callback: '',
-            onChapterEnter: [],
-            onChapterExit: []
+            onChapterEnter: [
+                // {
+                //     layer: 'layer-name',
+                //     opacity: 1,
+                //     duration: 5000
+                // }
+            ],
+            onChapterExit: [
+                // {
+                //     layer: 'layer-name',
+                //     opacity: 0
+                // }
+            ]
         },
         {
             id: 'second-identifier',
@@ -43,6 +57,12 @@ var config = {
                 zoom: 14.00,
                 pitch: 51.00,
                 bearing: 25.73
+                // flyTo additional controls-
+                // These options control the flight curve, making it move
+                // slowly and zoom out almost completely before starting
+                // to pan.
+                //speed: 2, // make the flying slow
+                //curve: 1, // change the speed at which it zooms out
             },
             mapAnimation: 'flyTo',
             rotateAnimation: false,
