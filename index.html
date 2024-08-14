@@ -114,6 +114,7 @@
             display: none;
             flex-direction: column;
             justify-content: space-between;
+            max-height: 120vh;
         }
 
         .sidebar-visible {
@@ -124,6 +125,7 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
+            overflow-y: hidden;
         }
 
         .category-box {
@@ -330,13 +332,21 @@
             }
 
             #sidebar {
-                width: 100%;
-                height: auto;
-                font-size: 14px;
-                position: static;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-around;
+                position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 350px;
+    font-family: 'Montserrat', sans-serif;
+    background: #333;
+    color: white;
+    padding: 10px;
+    overflow-y: hidden; /* Hide overflow to prevent scrollbar */
+    flex-shrink: 0;
+    z-index: 1;
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 90vh; 
             }
 
             .category-box {
@@ -710,6 +720,24 @@ figcaption {
 
     </div>
 
+ <p>Steinkamp is part of the Data Collaborative for Justice, which has studied the relationship between summonses and communities, and interviewed residents of the neighborhoods that received the most criminal summonses. "We asked them if they were concerned about these summonses. Universally, the response was that they weren't concerned. They pointed out that efforts to reduce littering were misguided, especially after removing trash cans in their areas. They suggested that providing public bathrooms could help decrease public urination. They desired more practical resources like additional trash cans and public restrooms."
+</p>   
+<p>Precincts with higher percentages of summonses relative to their population often have lower average incomes. But it's not always like that. For example, Precinct 14, which includes Times Square, Penn Station Area, Koreatown, and Chelsea, has the highest percentage of summonses per 1,000 people. 
+</p>
+<p>Jesse Bodine is part of the Manhattan Community Board 4 and works with those neighborhoods. "Crime has been going down, and you're hearing about people complaining about more quality of life issues, not public safety issues. And I think that's an important difference," said Bodine. "If people are complaining about bikes and noise and homelessness rather than murders, stabbings, and robberies, we are going in the right direction."
+</p>
+<p>According to data from the NYPD, precincts with lower percentages of summonses relative to their population tend to have higher average incomes. The Upper East Side has a rate of one summon per 1000 people and an average income of $130,527.
+</p>
+<p>Sitting in his office on White Plains Road in the Bronx, where meetings have to be canceled because people don't want to go there at night because it feels dangerous, George Torres said the police are not issuing enough summonses in his area. </p>
+<p>"The police should be out there more often. I believe this, but they need to write more summonses because it's not curbing the behavior. You still see cars angling parking; you still can hear shootings. And this will not be solved with a summons now and then." 
+</p>
+<p>Anna Stenkamp from the Data Collaborative for Justice, says that "there's an argument that people in certain neighborhoods commit more crimes than those in majority-white neighborhoods, attributing the higher number of summonses to specific behaviors. However, data on alcohol and drug consumption rates show consistency across races; the real difference lies in how the law is applied."
+</p>
+<p>Twenty-two miles from George Torres's office, next to a group of police officers riding horses in Greenwich Village, Jessica Williams said she didn't want to leave her neighborhood. But, she added, it is getting difficult to stay there. 
+</p>
+<p>"Before, I could go out and walk without worrying too much, but now there's always something happening. It's tiring," says Jessica. "And I see that there are police around; I can't deny it, but there are also more and more people doing whatever they want here."
+</p>
+<p></p>
 
 </div>
     <div id="map-sidebar-container" style="position: relative;">
@@ -736,7 +764,7 @@ figcaption {
                 <div class="sidebar-header2" id="precinctInfo">Categories</div>
                 <div id="categoryList"></div>
             </div>
-            <div class="sidebar-footer">The map shows the summonses with the correct coordinates from the NYPD crime data</div>
+            <div class="sidebar-footer">The map shows the summonses with coordinates from the NYPD crime data</div>
         </div>
     </div>
 
