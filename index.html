@@ -88,7 +88,7 @@
         }
 
         #map-container {
-            height: 95vh; /* Increased height */
+            height: 95vh; 
             width: 100vw;
             position: relative;
             overflow: hidden;
@@ -103,7 +103,7 @@
             position: absolute;
             top: 0;
             bottom: 0;
-            width: 350px; /* Increased width */
+            width: 350px; 
             font-family: 'Montserrat', sans-serif;
             background: #333;
             color: white;
@@ -130,7 +130,7 @@
 
         .category-box {
             width: calc(40% - 10px);
-            height: 90px; /* Increased height */
+            height: 90px; 
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -142,13 +142,13 @@
             cursor: pointer;
             flex-direction: column;
             box-sizing: border-box;
-            font-size: 12px; /* Increased font size */
+            font-size: 12px; 
             position: relative;
         }
 
         .category-box span:first-child {
             font-weight: bold;
-            font-size: 13px; /* Increased font size */
+            font-size: 13px; 
             margin-bottom: auto;
             white-space: normal;
             word-break: break-word;
@@ -157,13 +157,13 @@
 
         .category-box span:nth-child(2) {
             font-weight: bold;
-            font-size: 26px; /* Increased font size */
+            font-size: 26px; 
             margin-top: -2px;
         }
 
         .category-count {
             font-weight: bold;
-            font-size: 20px; /* Increased font size */
+            font-size: 20px; 
             margin-bottom: auto;
         }
 
@@ -258,7 +258,7 @@
         }
 
         .mapboxgl-ctrl-group {
-        font-size: 14px; /* Adjust the font size */
+        font-size: 14px; 
     }
 
         .mapboxgl-ctrl-geocoder--input {
@@ -333,7 +333,7 @@
 
         @media (max-width: 768px) {
             #map-container {
-                height: 60vh; /* Reduce map height on mobile */
+                height: 60vh; 
             }
 
             #sidebar {
@@ -345,7 +345,7 @@
     background: #333;
     color: white;
     padding: 10px;
-    overflow-y: hidden; /* Hide overflow to prevent scrollbar */
+    overflow-y: hidden; 
     flex-shrink: 0;
     z-index: 1;
     display: none;
@@ -446,12 +446,12 @@
             right: 0;
             bottom: 0; 
             background: none;
-            color: white; /* Match the text color of the left sidebar */
-            padding: 10px; /* Match the padding of the left sidebar */
-            display: none; /* Hide by default */
+            color: white; 
+            padding: 10px; 
+            display: none; 
             flex-direction: column;
             justify-content: space-between;
-            height: 100%; /* Ensure it matches the height of the map */
+            height: 100%; 
             box-sizing: border-box;
         }
 
@@ -483,7 +483,7 @@
 
         .chapter-box {
             padding: 20px;
-            margin: 20px auto; /* Center align by default */
+            margin: 20px auto; 
             background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             border-radius: 9px;
@@ -536,15 +536,15 @@
         }
 
         .image-container {
-            width: 100vw; /* Full viewport width */
-    margin-left: calc(-50vw + 50%); /* Offset the margin to ensure full width */
-    margin-right: calc(-50vw + 50%); /* Offset the margin to ensure full width */
-    overflow: hidden; /* Ensure content does not overflow */
+            width: 100vw; 
+    margin-left: calc(-50vw + 50%); 
+    margin-right: calc(-50vw + 50%); 
+    overflow: hidden; 
 }
 
 .image-container img {
-    width: 100%; /* Scale the image to the width of its container */
-    height: auto; /* Maintain aspect ratio */
+    width: 100%; 
+    height: auto; 
 
 }
 
@@ -869,8 +869,8 @@ figcaption {
                 zoom: 10,
                 style: config.style,
                 maxBounds: [
-                    [-74.259090, 40.477399], // Southwest coordinates
-                    [-73.700272, 40.917577]  // Northeast coordinates
+                    [-74.259090, 40.477399], 
+                    [-73.700272, 40.917577]  
                 ]
             });
 
