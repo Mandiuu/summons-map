@@ -935,14 +935,13 @@ figcaption {
 
             function populateSidebar(counts = {}, precinct = null) {
                 const categoryList = document.getElementById('categoryList');
-                categoryList.innerHTML = ''; // Clear previous list
+                categoryList.innerHTML = ''; 
                 categories.forEach(category => {
                     const box = document.createElement('div');
                     box.className = 'category-box';
                     box.style.backgroundColor = colors[category];
                     box.innerHTML = `<span>${category === 'ALCOHOL/DRUGS' ? 'ALCOHOL / DRUGS' : category}</span><span class="category-count" id="${category.replace(/ /g, '-').toLowerCase()}-count">${counts[category] || 0}</span>`;
 
-                    // Add triangle indicators for above/below average only if a precinct is provided
                     if (precinct) {
                         const average = averageSummonses[category];
                         if (counts[category] > average) {
@@ -955,7 +954,6 @@ figcaption {
                     box.addEventListener('click', () => filterSummonsLayer(category));
                     categoryList.appendChild(box);
                 });
-                // Add the "ALL" category box last
                 const allBox = document.createElement('div');
                 allBox.className = 'category-box';
                 allBox.style.backgroundColor = colors['ALL'];
@@ -963,7 +961,6 @@ figcaption {
                 allBox.addEventListener('click', () => filterSummonsLayer('all'));
                 categoryList.appendChild(allBox);
 
-                // Update precinct message
                 const precinctMessage = document.getElementById('precinctInfo');
                 if (precinct) {
                     precinctMessage.innerText = `That address is in precinct ${precinct}, which has this amount of summonses:`;
@@ -1154,7 +1151,6 @@ figcaption {
                 calculateAverageSummonses(currentYear);
                 populateSidebar(counts, precinct);
 
-                // Hide the year slider
                 document.getElementById('yearSlider').style.display = 'none';
                 document.getElementById('yearLabel').style.display = 'none';
             }
@@ -1196,14 +1192,13 @@ figcaption {
                     summonsData['2019'] = data2019;
                     summonsData['2018'] = data2018;
 
-                    console.log('Data loaded:', summonsData); // Debugging
+                    console.log('Data loaded:', summonsData); 
                     updateMap();
                 }).catch(error => {
                     console.error('Error loading the summons CSV files:', error);
                 });
             });
 
-            // Handle geocoder clear event to reset the map
             geocoder.on('clear', () => {
                 map.flyTo({
                     center: [-74.0060, 40.7128],
@@ -1214,22 +1209,19 @@ figcaption {
 
                 populateSidebar(countSummonsesPerCategory(summonsData[currentYear]));
 
-                // Clear the precinct message
                 const precinctMessage = document.getElementById('precinctInfo');
                 precinctMessage.innerText = 'Categories';
 
-                // Show the year slider
                 document.getElementById('yearSlider').style.display = 'block';
                 document.getElementById('yearLabel').style.display = 'flex';
             });
 
             document.getElementById('yearSlider').addEventListener('input', (e) => {
                 currentYear = e.target.value;
-                console.log('Year changed:', currentYear); // Debugging
+                console.log('Year changed:', currentYear); 
                 updateMap();
             });
 
-            // Storytelling integration
             const alignments = {
                 'left': 'lefty',
                 'center': 'centered',
@@ -1291,14 +1283,14 @@ figcaption {
                 }
 
                 container.setAttribute('id', record.id);
-                container.classList.add('step', 'chapter-box'); // Add chapter-box class
+                container.classList.add('step', 'chapter-box'); 
                 if (idx === 0) {
                     container.classList.add('active');
                 }
 
                 chapter.classList.add(config.theme);
                 container.appendChild(chapter);
-                container.classList.add(alignments[record.alignment] || 'centered');  // Use the alignments object here
+                container.classList.add(alignments[record.alignment] || 'centered');  
                 if (record.hidden) {
                     container.classList.add('hidden');
                 }
@@ -1362,7 +1354,7 @@ figcaption {
                         step: '.step',
                         offset: 0.5,
                         progress: true,
-                        threshold: [0, 0.5, 1] // Ensure this is set to a valid array of numbers between 0 and 1
+                        threshold: [0, 0.5, 1] 
                     })
                     .onStepEnter(response => {
                         const chapter = config.chapters.find(chap => chap.id === response.element.id);
@@ -1423,12 +1415,12 @@ figcaption {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         document.getElementById('sidebar').classList.add('sidebar-visible');
-                        document.getElementById('toggleStoryButton').style.display = 'block'; // Show button when map is in view
-                        document.getElementById('story').style.display = 'block'; // Show story sidebar when map is in view
+                        document.getElementById('toggleStoryButton').style.display = 'block'; 
+                        document.getElementById('story').style.display = 'block'; 
                     } else {
                         document.getElementById('sidebar').classList.remove('sidebar-visible');
-                        document.getElementById('toggleStoryButton').style.display = 'none'; // Hide button when map is not in view
-                        document.getElementById('story').style.display = 'none'; // Hide story sidebar when map is not in view
+                        document.getElementById('toggleStoryButton').style.display = 'none'; 
+                        document.getElementById('story').style.display = 'none'; 
                     }
                 });
             }, { threshold: 0.5 });
