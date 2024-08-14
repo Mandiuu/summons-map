@@ -538,12 +538,15 @@ html, body {
         <script type="text/javascript">!function(){"use strict";window.addEventListener("message",(function(a){if(void 0!==a.data["datawrapper-height"]){var e=document.querySelectorAll("iframe");for(var t in a.data["datawrapper-height"])for(var r=0;r<e.length;r++)if(e[r].contentWindow===a.source){var i=a.data["datawrapper-height"][t]+"px";e[r].style.height=i}}}))}();</script>
     </div>
     <div id="map-sidebar-container" style="position: relative;">
-    <div id="map-container">
-        <div id="map"></div>
-    </div>
-
-    <div id="sidebar">
-        <div>
+        <div id="map-container">
+            <div id="map"></div>
+            <div id="story">
+                <div id="features"></div>
+            </div>
+        </div>
+    
+        <div id="sidebar">
+            <div>
             <div class="sidebar-header">NYC Summons</div>
             <div id="yearLabel">
                 <span>2018</span>
@@ -1215,7 +1218,7 @@ html, body {
     });
 
     const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
+        entries.forEach(entry => {
         if (entry.isIntersecting) {
             document.getElementById('sidebar').classList.add('sidebar-visible');
             document.getElementById('toggleStoryButton').style.display = 'block'; // Show button when map is in view
@@ -1223,9 +1226,10 @@ html, body {
         } else {
             document.getElementById('sidebar').classList.remove('sidebar-visible');
             document.getElementById('toggleStoryButton').style.display = 'none'; // Hide button when map is not in view
+            document.getElementById('story').style.display = 'none'; // Hide story sidebar when map is not in view
         }
     });
-}, { threshold: 1 });  // Adjust threshold to ensure sidebar appears/disappears at the right time
+}, { threshold: 0.5 });
 
 observer.observe(document.getElementById('map-container'));
 });
