@@ -332,211 +332,212 @@
         }
 
         @media (max-width: 768px) {
-            #map-container {
-                height: 60vh; 
-            }
+    #map-container {
+        height: 80vh; /* Increased height */
+        margin-left: 0; 
+    }
 
-            #sidebar {
-                position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 350px;
-    font-family: 'Montserrat', sans-serif;
-    background: #333;
+    #sidebar {
+        width: 180px; /* Further reduced width */
+        height: 85vh;
+        display: none; /* Hide by default */  
+    }
+
+    #sidebar.open {
+        display: block;
+        position: absolute;
+        left: 0;
+        z-index: 10;
+        width: 180px;
+        background: rgba(51, 51, 51, 0.9); /* Slightly transparent background */
+    
+}
+
+.category-box {
+        font-size: 8px; /* Small font size for mobile */
+        width: 48%; /* Adjusted width to fit 2 per row with some margin */
+        height: auto;
+        padding: 5px;
+        margin: 1%; /* Small margin to allow spacing between boxes */
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .category-box span:first-child {
+        font-size: 10px; /* Smaller font size for the title */
+    }
+
+    .category-box span:nth-child(2) {
+        font-size: 14px; /* Smaller font size for the count/number */
+    }
+
+    #yearLabel, .sidebar-header, .sidebar-header2 {
+        font-size: 10px;
+    }
+
+    .sidebar-footer {
+        font-size: 8px;
+    }
+
+    .mapboxgl-popup {
+        font-size: 10px;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+
+    .header.with-image-bg {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .header.with-image-bg .title {
+        font-size: 3em;
+        margin-top: 0.5em;
+        margin-bottom: 0;
+    }
+
+    .header.with-image-bg .subtitle {
+        font-size: 2em;
+        margin-top: 0.5em;
+        color: white;
+        font-weight: bold;
+    }
+
+    .content {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .content p, .content .byline p, .content a {
+        font-size: 18px;
+    }
+
+    #story {
+        width: 100%;
+        height: auto;
+        position: static;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #toggleSidebarButton {
+    position: absolute;
+    bottom: 20px; /* Adjust position to be more out of the way */
+    left: 20px; /* Adjust position to be more out of the way */
+    z-index: 3;
+    padding: 6px 12px; /* Reduce padding for a smaller button */
+    font-size: 12px; /* Smaller font size */
+    background-color: #3FB1CE; /* Button background color */
     color: white;
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer;
+    width: auto; /* Ensure it doesn't take up too much space */
+    display: block; 
+}
+}
+
+.dark {
+    background: none;
     padding: 10px;
-    overflow-y: hidden; 
-    flex-shrink: 0;
-    z-index: 1;
-    display: none;
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.dark h1, .dark h2 {
+    font-family: 'Montserrat', sans-serif;
+}
+
+#story {
+    width: 350px; 
+    overflow-y: auto;
+    z-index: 2;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0; 
+    background: none;
+    color: white; 
+    padding: 10px; 
+    display: none; 
     flex-direction: column;
     justify-content: space-between;
-    height: 90vh; 
-            }
+    height: 100%; 
+    box-sizing: border-box;
+}
 
-            .category-box {
-                font-size: 12px;
-                width: 100%;
-                height: auto;
-            }
+.step {
+    margin-bottom: 200px;
+    opacity: 0.3;
+    transition: opacity 0.5s;
+}
 
-            #yearLabel, .sidebar-header, .sidebar-header2 {
-                font-size: 14px;
-            }
+.step.active {
+    opacity: 1;
+}
 
-            .sidebar-footer {
-                font-size: 10px;
-            }
+.step h3 {
+    margin: 0;
+    padding: 0;
+    font-size: 2em;
+    font-family: 'Montserrat', sans-serif;
+    color: #333;
+}
 
-            .mapboxgl-popup {
-                font-size: 10px;
-            }
+.step p {
+    margin: 10px 0 0;
+    padding: 0;
+    font-size: 1.5em;
+    font-family: 'Montserrat', sans-serif;
+    color: #666;
+}
 
-            #map {
-                width: 100%;
-                height: 300px;
-            }
+.chapter-box {
+    padding: 20px;
+    margin: 20px auto; 
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border-radius: 9px;
+    max-width: 800px; 
+}
 
-            .header.with-image-bg {
-                padding: 20px;
-                text-align: center;
-            }
+#header, #footer {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-family: 'Montserrat', sans-serif;
+    max-width: 700px;
+}
 
-            .header.with-image-bg .title {
-                font-size: 3em;
-                margin-top: 0.5em;
-                margin-bottom: 0;
-            }
+#toggleStoryButton {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 3;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #3FB1CE;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: none; 
+}
 
-            .header.with-image-bg .subtitle {
-                font-size: 2em;
-                margin-top: 0.5em;
-                color: white;
-                font-weight: bold;
-            }
+#features {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-            .content {
-                padding: 10px;
-                font-size: 14px;
-            }
-
-            .content p, .content .byline p, .content a {
-                font-size: 18px;
-            }
-
-            #story {
-                width: 100%;
-                height: auto;
-                position: static;
-                display: flex;
-                flex-direction: column;
-            }
-
-            #toggleStoryButton {
-                display: block;
-                position: static;
-                width: 100%;
-                padding: 8px 16px; 
-                font-size: 14px;
-            }
-        }
-
-        .dark {
-            background: none;
-            padding: 10px;
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .dark h1 {
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .dark h2 {
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        #story {
-            width: 350px; 
-            overflow-y: auto;
-            z-index: 2;
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0; 
-            background: none;
-            color: white; 
-            padding: 10px; 
-            display: none; 
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%; 
-            box-sizing: border-box;
-        }
-
-        .step {
-            margin-bottom: 200px;
-            opacity: 0.3;
-            transition: opacity 0.5s;
-        }
-
-        .step.active {
-            opacity: 1;
-        }
-
-        .step h3 {
-            margin: 0;
-            padding: 0;
-            font-size: 2em;
-            font-family: 'Montserrat', sans-serif;
-            color: #333;
-        }
-
-        .step p {
-            margin: 10px 0 0;
-            padding: 0;
-            font-size: 1.5em;
-            font-family: 'Montserrat', sans-serif;
-            color: #666;
-        }
-
-        .chapter-box {
-            padding: 20px;
-            margin: 20px auto; 
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            border-radius: 9px;
-            max-width: 800px; 
-        }
-
-        #header, #footer {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-family: 'Montserrat', sans-serif;
-            max-width: 700px;
-        }
-
-        #toggleStoryButton {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            z-index: 3;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #3FB1CE;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            display: none; 
-        }
-
-        #features {
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .chapter-box {
-            margin: 50px 0;
-        }
-
-        .step {
-            margin-bottom: 200px;
-            opacity: 0.3;
-            transition: opacity 0.5s;
-        }
-
-        .step.active {
-            opacity: 1;
-        }
-
-        .image-container {
-            width: 100vw; 
+.image-container {
+    width: 100vw; 
     margin-left: calc(-50vw + 50%); 
     margin-right: calc(-50vw + 50%); 
     overflow: hidden; 
@@ -545,7 +546,6 @@
 .image-container img {
     width: 100%; 
     height: auto; 
-
 }
 
 figcaption {
@@ -556,6 +556,8 @@ figcaption {
     padding-right: 20px; 
     box-sizing: border-box; 
 }
+
+
     </style>
 </head>
 
